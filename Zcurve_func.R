@@ -1,20 +1,32 @@
-
+# defines the function, which takes as inputs a dataframe containing the coordinates for the 3 axes,
+# the output filename and a list containing the formats of the output plots
 plotZcurve = function(coord_input, outputname, format_list) {
+  # creates a vector with an integer step-count of the genome sequence -> used for plot legend
   step=seq(1,nrow(coord_input))
+  # message for the user
   print('Plotting the Z-curve...\n')
-  #png(file=outputname, width=600, height=350)
+  # creates a 3D plot, with the points represented as a line, from the 3 columns of the dataframe
   lines3D(coord_input[,'X'], coord_input[,'Y'], coord_input[,'Z'], 
+          # adjusts the viewing direction
           theta = 15, phi = 20,
+          # colors the line: here I chose to color it according to the step, so we can know the direction
           colvar=step,
+          # main title
           main = "Z-curve", 
+          # axes titles, see README for more details
           xlab = "R/Y disparity",
           ylab ="M/K disparity", 
           zlab = "W/S disparity")
+  # for each format present in the input list
   for (file_format in format_list) {
+    # copies the plot without having to re-enter the commands
     dev.copy(
+      # takes file_format as a string
       eval(parse(text = file_format)),
+      # creates the new filename with the file format after the dot -> it is the new outputname, including the file format
       paste(outputname, file_format, sep = ".")
     )
+    # closes the plots and automatically saves it
     dev.off()
   }
 }
