@@ -2,7 +2,7 @@
 
 ## Background
 
-In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other info can be found [here](Zcurve_MS.pdf)
+In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other info can be found [here](Zcurve_MS.pdf). 
 
 The Z-curve is used in bioinformatics analysis to infer chemical properties of the genome (or gene) sequence in exam; since the curve tends to zig-zag, the 3D line is called Z-curve.
 
