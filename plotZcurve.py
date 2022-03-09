@@ -10,7 +10,7 @@ This script takes a genome as input, and plots the resulting Z-curve.
 - Procedure:
 1. imports all necessary python modules
 2. imports the R function, needed to generate the plots
-3. reads the genome and stores it in a variable as a concatenated string
+3. reads the genome and stores it in a variable as a concatenated string (if the file is indeed in FASTA format)
 4. creates an empty dictionary (bases_freq), with the nucleotides (a,c,g,t) as keys and 0 as values
 5. initiliazes a matrix needed for the transformation of the Z-curve (see README.md for more info)
 6. initiliazes a new dictionary, to contain the values of the plot axes X, Y and Z
@@ -40,12 +40,19 @@ description is given here, but please refer to the R script for more details.
 5. rpy2 and all submodules: to install the necessary packages and to import a 
 custom function from R (deatiled documentation in the code)
 
+- Possible errors addressed in the script:
+1. InvalidInput: if the input file does not start either with > (fasta format)
+2. InvalidNucleotide: if there are non-nucleotides characters in the sequence
+
+
 - Possible bugs:
 1. The script requires a series of python modules and R libraries. While there 
 is a check for the R library to be imported, the python modules are not checked for. 
 If for exmaple rpy2 is not installed, this will create an error and the script 
 will exit. 
 I have added instructions in the README to install these packages before running the script. 
+2. The input file has to be in FASTA format, and the script will not recognize if multiple genes/genomes 
+are concatenated in the same file; they will be treated as one sequence. 
 
 """
 #%% IMPORT MODULES
@@ -122,6 +129,20 @@ parser.add_argument(
 args = parser.parse_args()
 
 
+#%% CUSTOM ERRORS
+
+'Creates a new class of custom error messages in this script'
+class CustomError(Exception):
+    pass
+
+'Raised if input file is not a fasta file'
+class InvalidInput(CustomError):
+    pass
+
+'Raised if a sequence contains non-nucleotide characters'
+class InvalidNucleotide(CustomError):
+    pass
+
 #%% IMPORTING R USER-DEFINED FUNCTION
 
 # defines a list of packages needed for the R function to run
@@ -151,15 +172,36 @@ Zcurve = STAP(string, 'Zcurve')
 
 #%% READ GENOME
 
+
+# assign the first line of the file to a variable
+first_line = args.genome.readline()
+# checks if file is valid or not
+if not first_line.startswith('>'):
+    raise InvalidInput('Your input file is not valid. Please insert a fasta file')
+
+
 # initializes an empty string
 seq = ''
+# initializes a set to check if the sequence contains other characters than nucleotides
+bases = set(['a', 'c', 'g', 't'])
+
+# extracts the filename to be used as title of the plot: splits by /, and retrieves the last element
+# which is going to be the name, and keeps only the name and not the file format eg '.fna'
+plot_main=args.genome.name.split('/')[-1].split('.')[0]
+
 # reads the lines in the genome input file
 for line in args.genome:
     # if the line does not start with > (FASTA format)
     if not line.startswith('>'):
         # add check if line does not contain AGCT!
+        fragment = line.strip().lower()
+        # checks if all nucleotides in the sequence are valid
+        for base in fragment:
+            # if not, it raises an error and exits the script
+            if base not in bases:
+                raise InvalidNucleotide('Your input file contain unvalid nucleotides. Please insert a valid input fasta file')
         # adds the line to the string after lowering the letters and removing the newline
-        seq+=line.strip().lower()
+        seq+=fragment
 
 #%% CALCULATE COORDINATES
 
@@ -220,7 +262,7 @@ robjects.r.assign("r_coord", r_coord)
 '''
 
 #executes the R function
-Zcurve.plotZcurve(r_coord, args.outfile,args.out_format)
+Zcurve.plotZcurve(r_coord, args.outfile,args.out_format, plot_main)
 
 
 
