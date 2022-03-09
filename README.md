@@ -107,12 +107,15 @@ python plotZcurve.py -i samples_data/zika_genome.fna -Rfunc Zcurve_func.R -o sam
 
 This will create 3 versions of the same plot, in the different formats. 
 
-Below, a representative output of the commands above, ecoli.png and zika_mult.pdf, which can also be found in the repo samples_output/folder.
+Below, a representative output of the commands above, ecoli.png and zika_mult.tiff, which can also be found in the repo samples_output/folder.
 
-ecoli.png             |  zika_mult.pdf
-:-------------------------:|:-------------------------:
-![](samples_output/ecoli.png)  |  ![](samples_output/zika_mult.pdf)
+![ecoli.png](samples_output/ecoli.png)
 
+The first image is the result of the second example command. 
+
+![zika_mult.tiff](samples_output/zika_mult.tiff)
+
+This instead is the result of the last example command. 
 The Z-curve is colored by where we are in the genome sequence (sequence index); therefore, we can follow the sequence from start to end, and if we are interested in a particular region, we know already circa in which position we should be looking into. 
 
 The axes are the following:
@@ -121,9 +124,9 @@ The axes are the following:
 - z: W/S disparity
 
 Depending on how the line fits in the tridimensional space, we can infer something on the genome plotted. 
-For example, if we look at the *E. coli* Z-curve on the left, we see that the genome overall forms an open circle in the 3D space, indicating that start and end of the genome are quite similar to each other, while the mid section (1.5e+6 - 3.5e+6 circa) is quite different, especially along the y and z axes. 
+For example, if we look at the *E. coli* Z-curve (top plot), we see that the genome overall forms an open circle in the 3D space, indicating that start and end of the genome are quite similar to each other, while the mid section (1.5e+6 - 3.5e+6 circa) is quite different, especially along the y and z axes. 
 
-The Zika genome on the right instead seems to vary throughout the sequence especially in W/S disparity (z), while the other two parameters are rather constant, and in fact align quite well with the diagonal in the xy space. 
+The Zika genome (bottom plot) instead seems to vary throughout the sequence especially in W/S disparity (z), while the other two parameters are rather constant, and in fact align quite well with the diagonal in the xy space. 
 
 ## Version log
 
