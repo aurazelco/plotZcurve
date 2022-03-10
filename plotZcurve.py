@@ -10,7 +10,7 @@ This script takes a genome as input, and plots the resulting Z-curve.
 - Procedure:
 1. imports all necessary python modules
 2. imports the R function, needed to generate the plots
-3. reads the genome and stores it in a variable as a concatenated string (if the file is indeed in FASTA format)
+3. for each genome, reads the genome and stores it in a variable as a concatenated string (if the file is indeed in FASTA format)
 4. creates an empty dictionary (bases_freq), with the nucleotides (a,c,g,t) as keys and 0 as values
 5. initiliazes a matrix needed for the transformation of the Z-curve (see README.md for more info)
 6. initiliazes a new dictionary, to contain the values of the plot axes X, Y and Z
@@ -24,8 +24,10 @@ directory or a user-defined filename, as PNG (default) or other formats.
 - Usage:
 This script reads an input genome file in a FASTA format and returns a Z-curve plot. 
 
-It is run in the command line as: python plotZcurve.py [-h] -i INPUT_GENOME 
-                            -Rfunc R_SCRIPT [-o OUTPUT_PLOT] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+It is run in the command line as:
+    plotZcurve.py [-h] [-i INPUT_GENOME [INPUT_GENOME ...]] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+                     [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-p PLOT_PANEL]
+
 
 
 - List of user-defined functions:
@@ -100,6 +102,7 @@ parser.add_argument(
     metavar = 'INPUT_GENOME',
     dest = 'genome',
     type=argparse.FileType('r'), # readable file
+    required=True, 
     nargs='+', # there must be at least one argument if this flag is used
     help="input genome(s) to calculate the Z-curve, can be more than one" 
     )
@@ -111,7 +114,7 @@ parser.add_argument(
     dest = 'out_format',
     default=['png'],
     nargs='+', # there must be at least one argument if this flag is used
-    help="optional list of formats (separated by space): example png pdf jpeg" 
+    help="optional: list of formats (separated by space): example png pdf jpeg" 
     )
 
 parser.add_argument(
@@ -120,7 +123,7 @@ parser.add_argument(
     dest = 'out_path',
     type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
     default = os.path.curdir, # the default is the present working directory
-    help="optional path to output directory" 
+    help="optional: path to output directory" 
     )
 
 parser.add_argument(
@@ -129,8 +132,17 @@ parser.add_argument(
     dest = 'script_path',
     type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
     default = os.path.curdir, # the default is the present working directory
-    help="path to Zcurve_func.R, if not current working directory" 
+    help="path to Zcurve_func.R, needed if the R script is not in the current working directory" 
     )
+
+parser.add_argument(
+    '-p', 
+    dest = 'panel',
+    action="store_true",
+    help="optional: in case -p is used, the script will create a plot panel if multiple inputs are given" 
+    )
+
+
 
 # returns result of parsing 'parser' to the class args
 args = parser.parse_args()
@@ -148,6 +160,10 @@ class InvalidInput(CustomError):
 
 'Raised if a sequence contains non-nucleotide characters'
 class InvalidNucleotide(CustomError):
+    pass
+
+'Raised if a plot panel is wanted but only one input is given'
+class InvalidPlotPanel(CustomError):
     pass
 
 #%% IMPORTING R USER-DEFINED FUNCTION
@@ -226,7 +242,7 @@ def dir_path(string):
 
 def checks_input(genome):
     # assign the first line of the file to a variable
-    first_line = genome_input.readline()
+    first_line = genome.readline()
     # checks if file is valid or not
     if not first_line.startswith('>'):
         raise InvalidInput('Your input file {} is not valid. Please insert a fasta file' .format(genome))
@@ -243,7 +259,7 @@ def reads_genome(genome):
     plot_main=genome.name.split('/')[-1].split('.')[0]
 
     # reads the lines in the genome input file
-    for line in genome_input:
+    for line in genome:
         # if the line does not start with > (FASTA format)
         if not line.startswith('>'):
             # add check if line does not contain AGCT!
@@ -325,7 +341,7 @@ tr_matrix = np.array([[1,1,-1,-1], [1,1,-1,-1], [1,-1,-1,1]])
 # multiplies the matrix for the square root of 3 divided by 4
 tr_matrix = tr_matrix*math.sqrt(3)/4
 # -> needed for the Z-curve calculations
-
+'''
 for genome_input in args.genome:
     checks_input(genome_input)
     params=reads_genome(genome_input)
@@ -339,6 +355,15 @@ for genome_input in args.genome:
     plot_matrix=creates_matrix(seq, tr_matrix)
     #executes the R function
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
+
+
+if args.panel:
+    if len(args.genome) > 1:
+        print('yay')
+    else:
+       raise InvalidPlotPanel('The plot panel option is selected, but only one input is given. Please enter at least two input files')
+
+'''
 
 
 
