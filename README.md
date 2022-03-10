@@ -32,8 +32,6 @@ Therefore, the cumulative quantity of each nucleotide in a specific point of the
 
 1. Input genome or gene files, in FASTA format - they can be in one-line or multi-line, as long as one file is given for each genome/gene, since the program will not distinguish them within the file. 
 
-2. R script (included in this repo) - this gives the flexibility to have the scripts in another folder, but it is required to be added
-
 ## Installation
 
 ### Versions of languages and packages

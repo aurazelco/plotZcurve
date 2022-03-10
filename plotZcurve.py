@@ -45,13 +45,15 @@ custom function from R (deatiled documentation in the code)
 2. InvalidNucleotide: if there are non-nucleotides characters in the sequence
 
 
-- Possible bugs:
-1. The script requires a series of python modules and R libraries. While there 
+- List of known/possible bugs:
+1. At the time of release, a function from the rpy2 module can raise a FutureWarning in 
+certain operating systems. However, the code still runs, so it is not addressed at the moment. 
+2. The script requires a series of python modules and R libraries. While there 
 is a check for the R library to be imported, the python modules are not checked for. 
-If for exmaple rpy2 is not installed, this will create an error and the script 
+If for example rpy2 is not installed, this will create an error and the script 
 will exit. 
 I have added instructions in the README to install these packages before running the script. 
-2. The input file has to be in FASTA format, and the script will not recognize if multiple genes/genomes 
+3. The input file has to be in FASTA format, and the script will not recognize if multiple genes/genomes 
 are concatenated in the same file; they will be treated as one sequence. 
 
 """
@@ -59,6 +61,8 @@ are concatenated in the same file; they will be treated as one sequence.
 
 # Python modules
 import argparse
+import re
+import os 
 import math
 import numpy as np
 import pandas as pd
@@ -92,27 +96,8 @@ parser.add_argument(
     metavar = 'INPUT_GENOME',
     dest = 'genome',
     type=argparse.FileType('r'), # readable file
-    required=True,   # needs to be inserted in the command line
-    help="input genome to calculate the Z-curve" 
-    )
-
-# R script to be used to plot the Z-curve - required
-parser.add_argument(
-    '-Rfunc', 
-    metavar = 'R_SCRIPT',
-    dest = 'rscript',
-    type=argparse.FileType('r'), # readable file
-    required=True, # needs to be inserted in the command line
-    help="R script containing the function to plot the Z-curve" 
-    )
-
-# output filename - optional
-parser.add_argument(
-    '-o', 
-    metavar = 'OUTPUT_PLOT',
-    dest = 'outfile',
-    default='output',
-    help="optional name for saving the plot, without file extension" 
+    nargs='+', # there must be at least one argument if this flag is used
+    help="input genome(s) to calculate the Z-curve, can be more than one" 
     )
 
 # types of plot formats to be produced - optional
@@ -123,6 +108,15 @@ parser.add_argument(
     default=['png'],
     nargs='+', # there must be at least one argument if this flag is used
     help="optional list of formats (separated by space): example png pdf jpeg" 
+    )
+
+parser.add_argument(
+    '-o', 
+    metavar = 'OUTPUT_PATH',
+    dest = 'out_path',
+    type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
+    default = os.path.curdir, # the default is the present working directory
+    help="optional path to output directory" 
     )
 
 # returns result of parsing 'parser' to the class args
@@ -163,85 +157,13 @@ if len(packnames_to_install) > 0:
 # imports the library plot3D
 plot3D=rpackages.importr('plot3D')
 
-# reads the file containing R function given in the command line, and saves it in string
-string = args.rscript.read()
+with open('Zcurve_func.R') as R_func:
+    # reads the file containing R function given in the command line, and saves it in string
+    string = R_func.read()
 
 # creates a custom module, Zcurve, which contains the R function -> now this can be used as a 
 # regular python module
 Zcurve = STAP(string, 'Zcurve')
-
-#%% READ GENOME
-
-
-# assign the first line of the file to a variable
-first_line = args.genome.readline()
-# checks if file is valid or not
-if not first_line.startswith('>'):
-    raise InvalidInput('Your input file is not valid. Please insert a fasta file')
-
-
-# initializes an empty string
-seq = ''
-# initializes a set to check if the sequence contains other characters than nucleotides
-bases = set(['a', 'c', 'g', 't'])
-
-# extracts the filename to be used as title of the plot: splits by /, and retrieves the last element
-# which is going to be the name, and keeps only the name and not the file format eg '.fna'
-plot_main=args.genome.name.split('/')[-1].split('.')[0]
-
-# reads the lines in the genome input file
-for line in args.genome:
-    # if the line does not start with > (FASTA format)
-    if not line.startswith('>'):
-        # add check if line does not contain AGCT!
-        fragment = line.strip().lower()
-        # checks if all nucleotides in the sequence are valid
-        for base in fragment:
-            # if not, it raises an error and exits the script
-            if base not in bases:
-                raise InvalidNucleotide('Your input file contain unvalid nucleotides. Please insert a valid input fasta file')
-        # adds the line to the string after lowering the letters and removing the newline
-        seq+=fragment
-
-#%% CALCULATE COORDINATES
-
-# initializes a dictionary where the frequencies are stored
-bases_freq = {'a':0, 'g':0, 'c':0, 't':0}
-
-# defines the transformation matrix
-tr_matrix = np.array([[1,1,-1,-1], [1,1,-1,-1], [1,-1,-1,1]])
-# multiplies the matrix for the square root of 3 divided by 4
-tr_matrix = tr_matrix*math.sqrt(3)/4
-# -> needed for the Z-curve calculations
-
-# initializes an empty dictionary, to contain the list of values to be plotted on the 3 axes
-coordinates = {'x':[], 'y':[], 'z':[]}
-
-# for each index in the genome
-for i in range(len(seq)):
-    # adds to the value of the base at index i (seq[i]) 1 divided by the length of the sequence, 
-    # corresponding to the frequency of one base in the whole sequence -> cumulative frequency
-    bases_freq[seq[i]] += 1/(len(seq)+1)
-    # creates a list with the current values present in bases_freq dictionary
-    freq_values=list(bases_freq.values())
-    # for each axis in the coordinates dictionary:
-    for index,coord in enumerate(coordinates.keys()):
-        # adds to each axis' list the sum of the transformed values using the corresponding row in the tr_matrix
-        coordinates[coord].append(np.sum(freq_values*tr_matrix[index]))
-
-
-#%% PLOT USING R USER-DEFINED FUNCTION
-
-# creates a pandas dataframe out of the vertically stackes lists from the coordinates dictionary, and
-# labels the 3 columns as the correspondent axes
-py_df = pd.DataFrame(data=np.column_stack(list(coordinates.values())), columns=['X', 'Y', 'Z'])
-
-# converts the pandas dataframe to a R dataframe
-with localconverter(robjects.default_converter + pandas2ri.converter):
-  r_coord = robjects.conversion.py2rpy(py_df)
-
-# assigns a name to the R object
-robjects.r.assign("r_coord", r_coord)
 
 # description of parameters for Zcurve R function
 '''plotZcurve function
@@ -261,8 +183,148 @@ robjects.r.assign("r_coord", r_coord)
 
 '''
 
-#executes the R function
-Zcurve.plotZcurve(r_coord, args.outfile,args.out_format, plot_main)
+#%% USER-DEFINED FUNCTIONS - CHECKS IF OPTIONAL OUTPUT DIRECTORY EXISTS
+
+'''DIR_PATH
+
+    Parameters
+    ----------
+    seq : string
+        folder path as string
+
+    Returns
+    -------
+    string: folder path as string
+
+'''
+
+# checks if directory is valid
+def dir_path(string):
+    # if the directory exists, return the direcotry path as it is
+    if os.path.isdir(string):
+        return string
+    # if not, raise an error
+    else:
+        raise argparse.ArgumentTypeError("{path_dir} is not a valid path")
+
+#%% USER-DEFINED FUNCTIONS - READ GENOME
+
+def checks_input(genome):
+    # assign the first line of the file to a variable
+    first_line = genome_input.readline()
+    # checks if file is valid or not
+    if not first_line.startswith('>'):
+        raise InvalidInput('Your input file {} is not valid. Please insert a fasta file' .format(genome))
+
+def reads_genome(genome):
+    # initializes an empty string
+    seq = ''
+    # initializes a set to check if the sequence contains other characters than nucleotides
+    bases = set(['a', 'c', 'g', 't'])
+
+    # extracts the filename to be used as title of the plot: splits by /, and retrieves the last element
+    # which is going to be the name, and keeps only the name and not the file format eg '.fna'; 
+    # will also be sued for the output
+    plot_main=genome.name.split('/')[-1].split('.')[0]
+
+    # reads the lines in the genome input file
+    for line in genome_input:
+        # if the line does not start with > (FASTA format)
+        if not line.startswith('>'):
+            # add check if line does not contain AGCT!
+            fragment = line.strip().lower()
+            # checks if all nucleotides in the sequence are valid
+            for base in fragment:
+                # if not, it raises an error and exits the script
+                if base not in bases:
+                    raise InvalidNucleotide('Your input file contain unvalid nucleotides. Please insert a valid input fasta file')
+            # adds the line to the string after lowering the letters and removing the newline
+            seq+=fragment
+    # returns the genome sequence and the string to be used in the title       
+    return(seq, plot_main)
+
+''' GC_CONT
+
+    Parameters
+    ----------
+    seq : string
+        nucleotide sequence
+
+    Returns
+    -------
+    gc_cont: float
+        GC percentage in the sequence
+'''
+
+# defines a new function to count the GC content
+def GC_cont(seq):
+    # counts all matches of G or C in the string
+    gc = len(re.findall('[gc]', seq))
+    # calculates the length of the sequence, excluding Ns
+    tot = len(re.findall('[acgt]', seq))
+    # calculates the percentage using the whole sequence length
+    perc_gc = gc * 100 / tot
+    # returns the percentage
+    return(perc_gc)
+
+#%% USER-DEFINED FUNCTIONS - CALCULATE COORDINATES MATRIX
+
+def creates_matrix(seq, tr_matrix):
+    # initializes a dictionary where the frequencies are stored
+    bases_freq = {'a':0, 'g':0, 'c':0, 't':0}
+
+    # initializes an empty dictionary, to contain the list of values to be plotted on the 3 axes
+    coordinates = {'x':[], 'y':[], 'z':[]}
+
+    # for each index in the genome
+    for i in range(len(seq)):
+        # adds to the value of the base at index i (seq[i]) 1 divided by the length of the sequence, 
+        # corresponding to the frequency of one base in the whole sequence -> cumulative frequency
+        bases_freq[seq[i]] += 1/(len(seq)+1)
+        # creates a list with the current values present in bases_freq dictionary
+        freq_values=list(bases_freq.values())
+        # for each axis in the coordinates dictionary:
+        for index,coord in enumerate(coordinates.keys()):
+            # adds to each axis' list the sum of the transformed values using the corresponding row in the tr_matrix
+            coordinates[coord].append(np.sum(freq_values*tr_matrix[index]))
+
+    # creates a pandas dataframe out of the vertically stackes lists from the coordinates dictionary, and
+    # labels the 3 columns as the correspondent axes
+    py_df = pd.DataFrame(data=np.column_stack(list(coordinates.values())), columns=['X', 'Y', 'Z'])
+    # converts the pandas dataframe to a R dataframe
+    with localconverter(robjects.default_converter + pandas2ri.converter):
+      r_coord = robjects.conversion.py2rpy(py_df)
+    # assigns a name to the R object
+    robjects.r.assign("r_coord", r_coord)
+    
+    # returns the coordinates dictionary
+    return(r_coord)
+
+
+#%% MAIN
+
+out_path=dir_path(args.out_path)
+
+# defines the transformation matrix
+tr_matrix = np.array([[1,1,-1,-1], [1,1,-1,-1], [1,-1,-1,1]])
+# multiplies the matrix for the square root of 3 divided by 4
+tr_matrix = tr_matrix*math.sqrt(3)/4
+# -> needed for the Z-curve calculations
+
+for genome_input in args.genome:
+    checks_input(genome_input)
+    params=reads_genome(genome_input)
+    seq=params[0]
+    file_name=params[1]
+    # after the file has been read, it caculates the GC content on the whole genome
+    gc_file = GC_cont(seq)
+    # prints the filename and the GC content to the console
+    print('{}: {:.2f}%' .format(file_name, gc_file))
+    out_name=f'{out_path}/{file_name}'
+    plot_matrix=creates_matrix(seq, tr_matrix)
+    #executes the R function
+    Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
+
 
 
 
