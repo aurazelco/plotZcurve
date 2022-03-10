@@ -28,16 +28,20 @@ It is run in the command line as: python plotZcurve.py [-h] -i INPUT_GENOME
                             -Rfunc R_SCRIPT [-o OUTPUT_PLOT] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
 
 
--List of Python user-defined functions:
-There are no Python user-defined functions. However, a custom R function is imported. A brief 
-description is given here, but please refer to the R script for more details. 
+- List of user-defined functions:
+1. 
+
+Zcurve: a custom R function is imported; a brief description is given here, but please refer to the R script for more details. 
+
 
 - List of imported modules:
-1. argparse: a module which is used to input the different parameters.
-2. math: to calculate the square root of 3
-3. numpy: to create a temporary matrix which will then be saved as dataframe 
-4. pandas: to create a dataframe to then input it in R
-5. rpy2 and all submodules: to install the necessary packages and to import a 
+1. argparse: a module which is used to input the different parameters
+2. os: to retrieve the current working directory
+3. re: to work with Regex
+4. math: to calculate the square root of 3
+5. numpy: to create a temporary matrix which will then be saved as dataframe 
+6. pandas: to create a dataframe to then input it in R
+7. rpy2 and all submodules: to install the necessary packages and to import a 
 custom function from R (deatiled documentation in the code)
 
 - Possible errors addressed in the script:
@@ -119,6 +123,15 @@ parser.add_argument(
     help="optional path to output directory" 
     )
 
+parser.add_argument(
+    '-s', 
+    metavar = 'SCRIPT_PATH',
+    dest = 'script_path',
+    type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
+    default = os.path.curdir, # the default is the present working directory
+    help="path to Zcurve_func.R, if not current working directory" 
+    )
+
 # returns result of parsing 'parser' to the class args
 args = parser.parse_args()
 
@@ -157,7 +170,9 @@ if len(packnames_to_install) > 0:
 # imports the library plot3D
 plot3D=rpackages.importr('plot3D')
 
-with open('Zcurve_func.R') as R_func:
+R_func_path = args.script_path + '/Zcurve_func.R'
+
+with open(R_func_path, 'r') as R_func:
     # reads the file containing R function given in the command line, and saves it in string
     string = R_func.read()
 
@@ -324,7 +339,6 @@ for genome_input in args.genome:
     plot_matrix=creates_matrix(seq, tr_matrix)
     #executes the R function
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
-
 
 
 
