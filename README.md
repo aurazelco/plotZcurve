@@ -130,13 +130,13 @@ python plotZcurve.py -i samples_data/zika_genome.fna -Rfunc Zcurve_func.R -o sam
 
 This will create 3 versions of the same plot, in the different formats. 
 
-Below, a representative output of the commands above, ecoli.png and zika_mult.tiff, which can also be found in the repo samples_output/folder.
+Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo samples_output/folder.
 
 ![ecoli.png](samples_output/ecoli.png)
 
 The first image is the result of the second example command. 
 
-![zika_mult.tiff](samples_output/zika_mult.tiff)
+![zika_mult.png](samples_output/zika_mult.png)
 
 This instead is the result of the last example command. 
 The Z-curve is colored by where we are in the genome sequence (sequence index); therefore, we can follow the sequence from start to end, and if we are interested in a particular region, we know already circa in which position we should be looking into. 
