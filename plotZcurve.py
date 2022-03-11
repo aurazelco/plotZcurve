@@ -26,8 +26,7 @@ This script reads an input genome file in a FASTA format and returns a Z-curve p
 
 It is run in the command line as:
     plotZcurve.py [-h] [-i INPUT_GENOME [INPUT_GENOME ...]] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
-                     [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-p PLOT_PANEL]
-
+                     [-o OUTPUT_PATH] [-s SCRIPT_PATH]
 
 
 - List of user-defined functions:
@@ -134,15 +133,6 @@ parser.add_argument(
     default = os.path.curdir, # the default is the present working directory
     help="path to Zcurve_func.R, needed if the R script is not in the current working directory" 
     )
-
-parser.add_argument(
-    '-p', 
-    dest = 'panel',
-    action="store_true",
-    help="optional: in case -p is used, the script will create a plot panel if multiple inputs are given" 
-    )
-
-
 
 # returns result of parsing 'parser' to the class args
 args = parser.parse_args()
@@ -341,7 +331,7 @@ tr_matrix = np.array([[1,1,-1,-1], [1,1,-1,-1], [1,-1,-1,1]])
 # multiplies the matrix for the square root of 3 divided by 4
 tr_matrix = tr_matrix*math.sqrt(3)/4
 # -> needed for the Z-curve calculations
-'''
+
 for genome_input in args.genome:
     checks_input(genome_input)
     params=reads_genome(genome_input)
@@ -355,15 +345,5 @@ for genome_input in args.genome:
     plot_matrix=creates_matrix(seq, tr_matrix)
     #executes the R function
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
-
-
-if args.panel:
-    if len(args.genome) > 1:
-        print('yay')
-    else:
-       raise InvalidPlotPanel('The plot panel option is selected, but only one input is given. Please enter at least two input files')
-
-'''
-
 
 
