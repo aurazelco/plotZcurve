@@ -25,12 +25,16 @@ directory or a user-defined filename, as PNG (default) or other formats.
 This script reads an input genome file in a FASTA format and returns a Z-curve plot. 
 
 It is run in the command line as:
-    plotZcurve.py [-h] [-i INPUT_GENOME [INPUT_GENOME ...]] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
-                     [-o OUTPUT_PATH] [-s SCRIPT_PATH]
+    plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
+                     [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC]
 
 
 - List of user-defined functions:
-1. 
+1. dir_path: checkes if the directory exists
+2. checks_input: checks if the genome is in FASTA format
+3. reads_genome: cretaes one string from the genome sequence and extract the filename, used later
+4. GC_cont: calculates the GC content in the sequence
+5. creates_matrix: from the genome sequence string, creates the matrix with coordinates to be plotted 
 
 Zcurve: a custom R function is imported; a brief description is given here, but please refer to the R script for more details. 
 
@@ -43,7 +47,7 @@ Zcurve: a custom R function is imported; a brief description is given here, but 
 5. numpy: to create a temporary matrix which will then be saved as dataframe 
 6. pandas: to create a dataframe to then input it in R
 7. rpy2 and all submodules: to install the necessary packages and to import a 
-custom function from R (deatiled documentation in the code)
+custom function from R (detailed documentation in the code)
 
 - Possible errors addressed in the script:
 1. InvalidInput: if the input file does not start either with > (fasta format)
@@ -53,12 +57,14 @@ custom function from R (deatiled documentation in the code)
 - List of known/possible bugs:
 1. At the time of release, a function from the rpy2 module can raise a FutureWarning in 
 certain operating systems. However, the code still runs, so it is not addressed at the moment. 
-2. The script requires a series of python modules and R libraries. While there 
+2. Is the user inputs the -out_gc but not -gc flag, the script will still print 
+the GC content on the terminal and not in the output GC filename specified
+3. The script requires a series of python modules and R libraries. While there 
 is a check for the R library to be imported, the python modules are not checked for. 
 If for example rpy2 is not installed, this will create an error and the script 
 will exit. 
 I have added instructions in the README to install these packages before running the script. 
-3. The input file has to be in FASTA format, and the script will not recognize if multiple genes/genomes 
+4. The input file has to be in FASTA format, and the script will not recognize if multiple genes/genomes 
 are concatenated in the same file; they will be treated as one sequence. 
 
 """
@@ -116,6 +122,7 @@ parser.add_argument(
     help="optional: list of formats (separated by space): example png pdf jpeg" 
     )
 
+# output path - where to save output plots - optional
 parser.add_argument(
     '-o', 
     metavar = 'OUTPUT_PATH',
@@ -125,6 +132,7 @@ parser.add_argument(
     help="optional: path to output directory" 
     )
 
+# R script path - in case R script is not in current working directory - optional
 parser.add_argument(
     '-s', 
     metavar = 'SCRIPT_PATH',
@@ -132,6 +140,24 @@ parser.add_argument(
     type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
     default = os.path.curdir, # the default is the present working directory
     help="path to Zcurve_func.R, needed if the R script is not in the current working directory" 
+    )
+
+# GC content - if the user wants the GC content saved in a file instead of printed on the screen - optional
+parser.add_argument(
+    '-gc', 
+    dest = 'save_gc',
+    action="store_true",
+    help="optional: in case -save_gc is used, the script will save the GC content calculations to a file instead of printing to the console" 
+    )
+
+# GC content output name - if the user wants to specify the output filename for the GC content - optional
+parser.add_argument(
+    '-out_gc',
+    metavar = 'OUTPUT_GC',
+    dest = 'out_gc',
+    type=argparse.FileType('w'), 
+    default='GC_content_output.txt',
+    help= "optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory)" 
     )
 
 # returns result of parsing 'parser' to the class args
@@ -152,9 +178,6 @@ class InvalidInput(CustomError):
 class InvalidNucleotide(CustomError):
     pass
 
-'Raised if a plot panel is wanted but only one input is given'
-class InvalidPlotPanel(CustomError):
-    pass
 
 #%% IMPORTING R USER-DEFINED FUNCTION
 
@@ -233,7 +256,7 @@ def dir_path(string):
 def checks_input(genome):
     # assign the first line of the file to a variable
     first_line = genome.readline()
-    # checks if file is valid or not
+    # checks if file is valid FASTA file or not
     if not first_line.startswith('>'):
         raise InvalidInput('Your input file {} is not valid. Please insert a fasta file' .format(genome))
 
@@ -332,18 +355,34 @@ tr_matrix = np.array([[1,1,-1,-1], [1,1,-1,-1], [1,-1,-1,1]])
 tr_matrix = tr_matrix*math.sqrt(3)/4
 # -> needed for the Z-curve calculations
 
+if args.out_gc and not args.save_gc:
+    print('The GC content will be printed to the terminal. If you want to save the GC content in an output file, please add the -gc flag to the command')
+
+# for each genome in the list provided after the -i flag
 for genome_input in args.genome:
+    # checks if the input is in FASTA format
     checks_input(genome_input)
+    # extracts the sequence and the genome filename and saves them in a list
     params=reads_genome(genome_input)
+    # assigns the first element of the list (the whole genome sequence) to seq
     seq=params[0]
+    # assigns the genome filename
     file_name=params[1]
-    # after the file has been read, it caculates the GC content on the whole genome
+    # after the file has been read, it calculates the GC content on the whole genome
     gc_file = GC_cont(seq)
-    # prints the filename and the GC content to the console
-    print('{}: {:.2f}%' .format(file_name, gc_file))
+    # if the -gc flag is used
+    if args.save_gc:
+        # prints the filename and the GC content to the out_gc file
+        print('{}: {:.2f}%' .format(file_name, gc_file), file=args.out_gc)
+    # if not, prints to the terminal
+    else:
+        # prints the filename and the GC content to the console
+        print('{}: {:.2f}%' .format(file_name, gc_file))
+    # combines the output plot name 
     out_name=f'{out_path}/{file_name}'
+    # creates the matrix needed to run the plotting function
     plot_matrix=creates_matrix(seq, tr_matrix)
-    #executes the R function
+    # executes the R function and generates the plot
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
 
 
