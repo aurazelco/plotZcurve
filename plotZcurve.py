@@ -260,11 +260,9 @@ def checks_input(genome):
     if not first_line.startswith('>'):
         raise InvalidInput('Your input file {} is not valid. Please insert a fasta file' .format(genome))
 
-def reads_genome(genome):
+def reads_genome(genome, bases):
     # initializes an empty string
     seq = ''
-    # initializes a set to check if the sequence contains other characters than nucleotides
-    bases = set(['a', 'c', 'g', 't'])
 
     # extracts the filename to be used as title of the plot: splits by /, and retrieves the last element
     # which is going to be the name, and keeps only the name and not the file format eg '.fna'; 
@@ -354,6 +352,8 @@ tr_matrix = np.array([[1,1,-1,-1], [1,1,-1,-1], [1,-1,-1,1]])
 # multiplies the matrix for the square root of 3 divided by 4
 tr_matrix = tr_matrix*math.sqrt(3)/4
 # -> needed for the Z-curve calculations
+# initializes a set to check if the sequence contains other characters than nucleotides
+bases = set(['a', 'c', 'g', 't'])
 
 if args.out_gc and not args.save_gc:
     print('The GC content will be printed to the terminal. If you want to save the GC content in an output file, please add the -gc flag to the command')
@@ -363,7 +363,7 @@ for genome_input in args.genome:
     # checks if the input is in FASTA format
     checks_input(genome_input)
     # extracts the sequence and the genome filename and saves them in a list
-    params=reads_genome(genome_input)
+    params=reads_genome(genome_input, bases)
     # assigns the first element of the list (the whole genome sequence) to seq
     seq=params[0]
     # assigns the genome filename
