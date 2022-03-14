@@ -273,7 +273,7 @@ def reads_genome(genome, bases):
     for line in genome:
         # if the line does not start with > (FASTA format)
         if not line.startswith('>'):
-            # add check if line does not contain AGCT!
+            # removes newline and makes all letters lower case
             fragment = line.strip().lower()
             # checks if all nucleotides in the sequence are valid
             for base in fragment:
