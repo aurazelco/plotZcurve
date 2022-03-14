@@ -85,7 +85,6 @@ The python script can be run in the command line as:
 5. rpy2
 
 If not present, the script will raise a ModuleNotFoundError, followed by the names of modules to be installed. Please do so before running again. 
-
 The libraries for R are installed the first time the software is run, if not already present. 
 
 
@@ -112,56 +111,7 @@ optional arguments:
 
 There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. 
 
-## Web interface - Usage (v1.0.0)
-
-The web interface was built using flask, in a development environment; therefore, some features are not optmized. In this repo, the main directory tree structure is found in flask_interface. 
-
-### Necessary files and tree structure
-
-To run the flask interface, the necessary files are needed, starting from the parent directory flask_interface:
-1. webZcurve.py
-2. .flaskenv
-3. app (directory): containing routes.py, __init__.py
-4. app/templates(directory): containing main_input.html, print_results.html
-
-
-It is recommended to use the same conda or python virtual environment created before, and just install flask as well (if not installed already). 
-
-```shell
-conda activate Zcurve
-conda install flask==2.0.3
-# or
-source Zcurve/bin/activate
-pip -m install flask==2.0.3
-```
-
-Then the user needs to access the file app/routes.py in a text editor, and add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH']. For security reasons, this has to be done manually by the user according to their own local directory structure. If this is not done before running the application, flask will raise an error and the server will abort. 
-
-### Running the web interface
-
-After the necessary installations and modifications aforementioned, the app is ready to run, if all modules are installed and the necessary files are present. 
-```shell
-flask run
-```
-
-In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed.
-
-![web1](examples_web_interface/image1.png)
-
-![web2](examples_web_interface/image2.png)
-
-
-
-For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot; the user has also the possibility to download the plot as PNG. 
-
-### Limitations of web interface
-
-Because this was created in the flask developer environment, there are some limitations of the app when compared to the command line version. In the web interface, th euser can download the plots only as png, because they are first created as png, since multiple file extensions was not possible at the moment (but it is in the command line). 
-Also, the fact that this is in the developer environment leads to the fact that the paths have to hard-coded in the script, since it would be a possible security issue. 
-Therefore, the web interface is limited in functionality compared to the command line version. 
-
-
-## Examples of usage
+### Examples of usage
 
 The sample data can be found in the corresponding folder in this repo. The genomes were retrieved  as RefSeq FASTA sequences from the NCBI database, and the links are found in the table below. 
 
@@ -214,10 +164,58 @@ For example, if we look at the *E. coli* Z-curve (top plot), we see that the gen
 
 The Zika genome (bottom plot) instead seems to vary throughout the sequence especially in W/S disparity (z), while the other two parameters are rather constant, and in fact align quite well with the diagonal in the xy space. 
 
+
+## Web interface - Usage (v1.0.0)
+
+The web interface was built using flask, in a development environment; therefore, some features are not optmized. In this repo, the main directory tree structure is found in flask_interface. 
+
+### Necessary files and tree structure
+
+To run the flask interface, the necessary files are needed, starting from the parent directory flask_interface:
+1. webZcurve.py
+2. .flaskenv
+3. app (directory): containing routes.py, __init__.py
+4. app/templates(directory): containing main_input.html, print_results.html
+
+
+It is recommended to use the same conda or python virtual environment created before, and just install flask as well (if not installed already). 
+
+```shell
+conda activate Zcurve
+conda install flask==2.0.3
+# or
+source Zcurve/bin/activate
+pip -m install flask==2.0.3
+```
+
+Then the user needs to access the file app/routes.py in a text editor, and add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH']. For security reasons, this has to be done manually by the user according to their own local directory structure. If this is not done before running the application, flask will raise an error and the server will abort. 
+
+### Running the web interface
+
+After the necessary installations and modifications aforementioned, the app is ready to run, if all modules are installed and the necessary files are present. 
+```shell
+flask run
+```
+
+In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed.
+
+![web1](examples_web_interface/image1.png)
+
+![web2](examples_web_interface/image2.png)
+
+For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot; the user has also the possibility to download the plot as PNG. 
+
+### Limitations of web interface
+
+Because this was created in the flask developer environment, there are some limitations of the app when compared to the command line version. In the web interface, the user can download the plots only as png, because they are first created as png, since multiple file extensions was not possible at the moment (but it is in the command line).
+
+Also, the fact that this is in the developer environment leads to the fact that the paths have to hard-coded in the script, since it would be a possible security issue. 
+Therefore, the web interface is limited in functionality compared to the command line version. 
+
 ## Version log
 
 Selected updates:
 
 ```
-v1.0.0		First official release Zcurve - March 2022
+v1.0.0		First official release Zcurve - 14th March 2022
 ```
