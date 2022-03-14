@@ -147,7 +147,7 @@ parser.add_argument(
     '-gc', 
     dest = 'save_gc',
     action="store_true",
-    help="optional: in case -save_gc is used, the script will save the GC content calculations to a file instead of printing to the console" 
+    help="optional: in case -gc is used, the script will save the GC content calculations to a file instead of printing to the console" 
     )
 
 # GC content output name - if the user wants to specify the output filename for the GC content - optional
