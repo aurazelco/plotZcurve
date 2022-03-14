@@ -1,0 +1,19 @@
+<!-- Extends the main page, so the instructions for title etc do not have to be repeated -->
+{% extends 'main_input.html' %}
+<!-- Beginning of block, so that main_input.html knows to start showing this in the server -->
+{% block content %}
+  <!-- Title of section -->
+  <h2>Results: </h2>
+    <!-- for loop so we can see multiple results at the same time -->
+    {% for input_file in file_dict.keys() %}
+      <!-- Prints the GC content -->
+      <div><p> The GC content for {{ input_file }} is {{ file_dict[input_file][0] }}%. </p></div>
+      <!-- Displays the corresponding plot, retrieved from the local subdirectory static/images -->
+      <p><img src="{{url_for('static', filename=file_dict[input_file][1])}}"></p>
+      <!-- Displayes 'Save as PNG' so that the user can download the plot as png in their Downloads directory -->
+      <br />
+      <p><a href="{{url_for('static', filename=file_dict[input_file][1])}}" download={{input_file}} >Save as PNG </a></p>
+    <!-- End of loop -->
+    {% endfor %}
+<!-- End of block -->
+{% endblock %}

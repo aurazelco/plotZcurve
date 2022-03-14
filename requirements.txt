@@ -1,0 +1,19 @@
+backports.zoneinfo @ file:///Users/runner/miniforge3/conda-bld/backports.zoneinfo_1629669681566/work
+cffi @ file:///Users/runner/miniforge3/conda-bld/cffi_1636046182160/work
+click @ file:///Users/runner/miniforge3/conda-bld/click_1645238150271/work
+Flask @ file:///home/conda/feedstock_root/build_artifacts/flask_1644887820294/work
+itsdangerous @ file:///home/conda/feedstock_root/build_artifacts/itsdangerous_1646849180040/work
+Jinja2 @ file:///home/conda/feedstock_root/build_artifacts/jinja2_1636510082894/work
+MarkupSafe @ file:///Users/runner/miniforge3/conda-bld/markupsafe_1646594665555/work
+numpy @ file:///Users/runner/miniforge3/conda-bld/numpy_1646717246420/work
+pandas==1.4.1
+pycparser @ file:///home/conda/feedstock_root/build_artifacts/pycparser_1636257122734/work
+python-dateutil @ file:///home/conda/feedstock_root/build_artifacts/python-dateutil_1626286286081/work
+pytz @ file:///home/conda/feedstock_root/build_artifacts/pytz_1633452062248/work
+pytz-deprecation-shim @ file:///Users/runner/miniforge3/conda-bld/pytz-deprecation-shim_1637074844706/work
+rpy2==3.1.0
+simplegeneric==0.8.1
+six @ file:///home/conda/feedstock_root/build_artifacts/six_1620240208055/work
+tzdata @ file:///home/conda/feedstock_root/build_artifacts/python-tzdata_1635187324762/work
+tzlocal @ file:///Users/runner/miniforge3/conda-bld/tzlocal_1637088253288/work
+Werkzeug @ file:///home/conda/feedstock_root/build_artifacts/werkzeug_1644332431572/work
