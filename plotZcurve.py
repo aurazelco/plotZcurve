@@ -109,7 +109,7 @@ parser.add_argument(
     type=argparse.FileType('r'), # readable file
     required=True, 
     nargs='+', # there must be at least one argument if this flag is used
-    help="input genome(s) to calculate the Z-curve, can be more than one" 
+    help="input genome(s) to calculate the Z-curve, can be more than one - example: -i zika_genome.fna ecoli_genome.fna" 
     )
 
 # types of plot formats to be produced - optional
@@ -119,7 +119,7 @@ parser.add_argument(
     dest = 'out_format',
     default=['png'],
     nargs='+', # there must be at least one argument if this flag is used
-    help="optional: list of formats (separated by space): example png pdf jpeg" 
+    help="optional: list of formats (separated by space) - example: -f png pdf jpeg" 
     )
 
 # output path - where to save output plots - optional
@@ -129,7 +129,7 @@ parser.add_argument(
     dest = 'out_path',
     type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
     default = os.path.curdir, # the default is the present working directory
-    help="optional: path to output directory" 
+    help="optional: path to output directory - example: -o results" 
     )
 
 # R script path - in case R script is not in current working directory - optional
@@ -139,7 +139,7 @@ parser.add_argument(
     dest = 'script_path',
     type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
     default = os.path.curdir, # the default is the present working directory
-    help="path to Zcurve_func.R, needed if the R script is not in the current working directory" 
+    help="path to Zcurve_func.R, needed if the R script is not in the current working directory - example: -s scripts" 
     )
 
 # GC content - if the user wants the GC content saved in a file instead of printed on the screen - optional
@@ -156,7 +156,7 @@ parser.add_argument(
     metavar = 'OUTPUT_GC',
     dest = 'out_gc',
     default='GC_content_output.txt',
-    help= "optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory)" 
+    help= "optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory) - example: -out_gc gc_results.txt" 
     )
 
 # returns result of parsing 'parser' to the class args

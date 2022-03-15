@@ -8,7 +8,7 @@ plotZcurve = function(coord_input, outputname, format_list, plot_title) {
           # colors the line: here I chose to color it according to the step, so we can know the direction
           colvar=step,
           # legend title
-          clab = c("Sequence index"),
+          clab = c("Sequence length"),
           # main title
           main = plot_title, 
           # axes titles, see README for more details
