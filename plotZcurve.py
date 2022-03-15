@@ -354,12 +354,13 @@ tr_matrix = tr_matrix*math.sqrt(3)/4
 # initializes a set to check if the sequence contains other characters than nucleotides
 bases = set(['a', 'c', 'g', 't'])
 
-# if only the out_gc command is given bu not the save_gc
-if args.out_gc and not args.save_gc:
-    print('The GC content will be printed to the terminal. If you want to save the GC content in an output file, please add the -gc flag to the command')
-# if instead the -gc flag is used, we open the file
-elif args.save_gc:
+# if -gc flag is used, this will be True
+if args.save_gc:
+    # opens the out_gc as writable file
     fileOut=open(args.out_gc, 'w')
+# if not, prints to console
+else:
+    print('The GC content will be printed to the terminal. If you want to save the GC content in an output file, please add the -gc flag to the command')
 
 # for each genome in the list provided after the -i flag
 for genome_input in args.genome:
@@ -374,7 +375,7 @@ for genome_input in args.genome:
     # after the file has been read, it calculates the GC content on the whole genome
     gc_file = GC_cont(seq)
     # if the -gc flag is used
-    if args.save_gc=='True':
+    if args.save_gc:
         # prints the filename and the GC content to the out_gc file
         fileOut.write('{}: {:.2f}%' .format(file_name, gc_file))
     # if not, prints to the terminal
