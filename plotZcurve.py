@@ -155,7 +155,6 @@ parser.add_argument(
     '-out_gc',
     metavar = 'OUTPUT_GC',
     dest = 'out_gc',
-    type=argparse.FileType('w'), 
     default='GC_content_output.txt',
     help= "optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory)" 
     )
@@ -355,8 +354,12 @@ tr_matrix = tr_matrix*math.sqrt(3)/4
 # initializes a set to check if the sequence contains other characters than nucleotides
 bases = set(['a', 'c', 'g', 't'])
 
+# if only the out_gc command is given bu not the save_gc
 if args.out_gc and not args.save_gc:
     print('The GC content will be printed to the terminal. If you want to save the GC content in an output file, please add the -gc flag to the command')
+# if instead both are given, the output file is open
+elif args.out_gc and args.save_gc:
+    fileOut=open(args.out_gc, 'w')
 
 # for each genome in the list provided after the -i flag
 for genome_input in args.genome:
@@ -371,9 +374,9 @@ for genome_input in args.genome:
     # after the file has been read, it calculates the GC content on the whole genome
     gc_file = GC_cont(seq)
     # if the -gc flag is used
-    if args.save_gc:
+    if args.save_gc=='True':
         # prints the filename and the GC content to the out_gc file
-        print('{}: {:.2f}%' .format(file_name, gc_file), file=args.out_gc)
+        fileOut.write('{}: {:.2f}%' .format(file_name, gc_file))
     # if not, prints to the terminal
     else:
         # prints the filename and the GC content to the console
@@ -382,8 +385,11 @@ for genome_input in args.genome:
     out_name=f'{out_path}/{file_name}'
     # creates the matrix needed to run the plotting function
     plot_matrix=creates_matrix(seq, tr_matrix)
-    # executes the R function and generates the plot
+    # message for the user
     print('Plotting the Z-curve for {}...' .format(file_name))
+    # executes the R function and generates the plot
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
 
-
+# we have to close the output file, but only if the gc flag was used
+if args.save_gc:
+    fileOut.close()
