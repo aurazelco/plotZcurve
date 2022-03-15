@@ -2,7 +2,7 @@
 
 ## Background
 
-In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other info can be found [here](Zcurve_MS.pdf). 
+In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other details about the software can be found [here](Zcurve_MS.pdf). 
 
 The Z-curve is used in bioinformatics analysis to infer chemical properties of the genome (or gene) sequence in exam; since the curve tends to zig-zag, the 3D line is called Z-curve.
 
@@ -11,9 +11,9 @@ The Z-curve is as long as the target sequence, and each point on the Z-curve, *P
 As aforementioned, the coordinates for each *P* are calculated based on the chemical properties sequence (more details in [this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009844/)). 
 
 More specifically, the nucleotides are divided in according to three properties:
-1. aMino/Keto (M/K) bases
-2. puRine/pYrimide (R/Y) bases
-3. Weak/Strong H-bonds (W/S). 
+1. aMino/Keto (M/K) bases - will become the x-axis
+2. puRine/pYrimide (R/Y) bases - will become the y-axis
+3. Weak/Strong H-bonds (W/S) - will become the z-axis
 
 Therefore, each nucleotide is classified as:
 
@@ -26,15 +26,21 @@ Therefore, each nucleotide is classified as:
 
 Therefore, the cumulative quantity of each nucleotide in a specific point of the sequence can indicate if there is a disparity or not in the composition of the sequence. One of the advantages of the Z-curve compared to other methods is that it is highly informative, unique to each genome and can reveal interesting sections of the genome, e.g. horizontal gene transfer, protein-coding genes, higher GC content, comparison of genomes, etc.
 
-## Input files
 
-### Required files
+## Installation
 
-1. Input genome or gene files, in FASTA format - they can be in one-line or multi-line, as long as one file is given for each genome/gene, since the program will not distinguish them within the file. 
+### Main files:
 
-# Installation
+The repo can be cloned in a directory of choice as:
 
-## Versions of languages and packages
+```shell
+$ git clone https://github.com/aurazelco/BINP29_Zcurve.git
+````
+
+The scripts will then be available in the local directory, as well as the environment files, the sample_data folder to test the scripts on and the flask_interface folder. 
+
+
+### Versions of languages and packages
 
 In the table below you can find the versions used to build this script and the web interface:
 
@@ -54,24 +60,14 @@ The versions of the python modules can be checks using check_versions.py. While 
 The requirements can be found in [environment.yml](environment.yml) for conda or [requirements.txt](requirements.txt) for python virtual environments, and it can be installed as:
 
 ```shell
-conda env create -n your_name -f environment.yml # but requirements.txt can be used too
+$ conda env create -n your_name -f environment.yml # but requirements.txt can be used too
 # or
-pip install -r requirements.txt
+$ pip install -r requirements.txt
 ```
 
 Otherwise, the environments can be created from scratch following the usual commands and specifying the versions. Most often, pandas and numpy will be already included in the conda environment. For python virtual environments, they need to be installed. 
 
-## Main scripts:
-
-The repo can be cloned in a directory of choice as:
-
-```shell
-$ git clone https://github.com/aurazelco/BINP29_Zcurve.git
-````
-
-The scripts will then be available in the local directory, and can be run, as well as the sample_data folder to test the scripts on. 
-
-## Before running:
+### Before running:
 
 As aforementioned, it is recommended to work in a conda or python virtual environment with the specific version of rpy2 installed. 
 
@@ -87,13 +83,34 @@ The python script can be run in the command line as:
 If not present, the script will raise a ModuleNotFoundError, followed by the names of modules to be installed. Please do so before running again. 
 The libraries for R are installed the first time the software is run, if not already present. 
 
+#### Additional steps for flask
+
+and the absolute paths for the input genome files and the location of the R script have to be manually inserted in the following variables:
+
+
+If the user wants to run the flask app, the file [flask_interface/app/routes.py](flask_interface/app/routes.py) file has to be opened in a text editor, and the user has to add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH']. 
+For security reasons, this has to be done manually by the user according to their own local directory structure. If this step is omitted, and the flask app is run, the app will raise an error and exit. 
+
+```shell
+# sets the upload path, so the files can be checked - please insert your own path
+app.config['UPLOAD_PATH']= ''
+# sets the path where the R script is - please insert your own path
+app.config['SCRIPT_PATH'] = ''
+```
+
+## Required files
+
+1. Input genome or gene files, in FASTA format - they can be in one-line or multi-line, as long as one file is given for each genome/gene, since the program will not distinguish them within the file. 
+
 
 ## Command line - Usage (v1.0.0)
 
 Below there is a description of the command, possible to be visualized in the command line with:
 
 ```shell
-$ usage: plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC]
+$ python plotZcurve.py -h
+
+usage: plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC]
 
 This script reads an input genome file in a FASTA format and returns the coordinates matrix to plot a Z-curve.
 
@@ -105,11 +122,11 @@ optional arguments:
                         optional: list of formats (separated by space): example png pdf jpeg
   -o OUTPUT_PATH        optional: path to output directory
   -s SCRIPT_PATH        path to Zcurve_func.R, needed if the R script is not in the current working directory
-  -gc                   optional: in case -save_gc is used, the script will save the GC content calculations to a file instead of printing to the console
+  -gc                   optional: in case -gc is used, the script will save the GC content calculations to a file instead of printing to the console
   -out_gc OUTPUT_GC     optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory)
 ```
 
-There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. 
+There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. Also, in MacOS there seems to be an extra error with one of the R files for the library, but again this does not constitute a rpoblem and the software runs smoothly. 
 
 ### Examples of usage
 
@@ -123,14 +140,14 @@ The sample data can be found in the corresponding folder in this repo. The genom
 The most basic command is:
 
 ```shell
-python plotZcurve.py -i samples_data/ecoli_genome.fna -Rfunc Zcurve_func.R
+$ python plotZcurve.py -i samples_data/ecoli_genome.fna -Rfunc Zcurve_func.R
 ````
 
 This will output the plot with the default name and extension (output.png) in the working directory. 
 If we want to specify an input file in another folder and save it with a specific name, we can run the following command:
 
 ```shell
-python plotZcurve.py -i samples_data/ecoli_genome.fna -Rfunc Zcurve_func.R -o samples_output/ecoli
+$ python plotZcurve.py -i samples_data/ecoli_genome.fna -Rfunc Zcurve_func.R -o samples_output/ecoli
 ````
 
 The script retrieves the input file in the subfolder, and saves the new plot in the samples_output subfolder as ecoli.png. 
@@ -138,7 +155,7 @@ The script retrieves the input file in the subfolder, and saves the new plot in 
 Lastly, if we want to have multiple formats of the same graph, we can run:
 
 ```shell
-python plotZcurve.py -i samples_data/zika_genome.fna -Rfunc Zcurve_func.R -o samples_output/zika_mult -f png pdf jpeg tiff  
+$ python plotZcurve.py -i samples_data/zika_genome.fna -Rfunc Zcurve_func.R -o samples_output/zika_mult -f png pdf jpeg tiff  
 ```
 
 This will create 3 versions of the same plot, in the different formats. 
@@ -177,27 +194,26 @@ To run the flask interface, the necessary files are needed, starting from the pa
 3. app (directory): containing routes.py, __init__.py
 4. app/templates(directory): containing main_input.html, print_results.html
 
-
 It is recommended to use the same conda or python virtual environment created before, and just install flask as well (if not installed already). 
 
 ```shell
-conda activate Zcurve
-conda install flask==2.0.3
+$ conda activate Zcurve
+$ conda install flask==2.0.3
 # or
-source Zcurve/bin/activate
-pip -m install flask==2.0.3
+$ source Zcurve/bin/activate
+$ pip -m install flask==2.0.3
 ```
 
-Then the user needs to access the file app/routes.py in a text editor, and add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH']. For security reasons, this has to be done manually by the user according to their own local directory structure. If this is not done before running the application, flask will raise an error and the server will abort. 
+**Remember** to add the paths as indicated in the installation section, otherwise the flask app will not work. 
 
 ### Running the web interface
 
 After the necessary installations and modifications aforementioned, the app is ready to run, if all modules are installed and the necessary files are present. 
 ```shell
-flask run
+$ flask run
 ```
 
-In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed.
+In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed. An exmaple of output is shown below. 
 
 ![web1](examples_web_interface/image1.png)
 
@@ -205,17 +221,17 @@ In the webpage, the user can navigate to the folder where the genomes are stored
 
 For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot; the user has also the possibility to download the plot as PNG. 
 
-### Limitations of web interface
+## Limitations of the software
 
-Because this was created in the flask developer environment, there are some limitations of the app when compared to the command line version. In the web interface, the user can download the plots only as png, because they are first created as png, since multiple file extensions was not possible at the moment (but it is in the command line).
+1. The versions of the modules is extremely important, especially for rpy2 module to run. 
+2. The software slows down when the genome files get bigger
+3. Because the web interface was created in the flask developer environment, there are some limitations of the app when compared to the command line version. In the web interface, the user can download the plots only as png, because they are first created as png, since multiple file extensions was not possible at the moment (but it is in the command line). lso, the fact that this is in the developer environment leads to the fact that the paths have to hard-coded in the script, since it would be a possible security issue. Therefore, the web interface is limited in functionality compared to the command line version. 
 
-Also, the fact that this is in the developer environment leads to the fact that the paths have to hard-coded in the script, since it would be a possible security issue. 
-Therefore, the web interface is limited in functionality compared to the command line version. 
 
 ## Version log
 
 Selected updates:
 
 ```
-v1.0.0		First official release Zcurve - 14th March 2022
+v1.0.0		First official release Zcurve - th March 2022
 ```
