@@ -55,7 +55,7 @@ In the table below you can find the versions used to build this script and the w
 | Flask | 2.0.3 |
 | Werkzeug | 2.0.3 |
 
-The versions of the python modules can be checks using check_versions.py. While pandas and numpy older versions work too, it is necessary to install the rpy2 specific version, since updating it to later versions leads to an error in loading th R library. 
+The versions of the python modules can be checks using [check_versions.py](check_versions.py). While pandas and numpy older versions work too, it is necessary to install the rpy2 specific version, since updating it to later versions leads to an error in loading th R library. 
 
 The requirements can be found in [environment.yml](environment.yml) for conda or [requirements.txt](requirements.txt) for python virtual environments, and it can be installed as:
 
@@ -66,6 +66,8 @@ $ pip install -r requirements.txt
 ```
 
 Otherwise, the environments can be created from scratch following the usual commands and specifying the versions. Most often, pandas and numpy will be already included in the conda environment. For python virtual environments, they need to be installed. 
+
+**Important**: it is recommended to create either a conda or a python virtual environment, not both. Using both could cause conflicts which in turn will raise errors, and the software/flask app will not run.
 
 ### Before running:
 
@@ -85,10 +87,8 @@ The libraries for R are installed the first time the software is run, if not alr
 
 #### Additional steps for flask
 
-and the absolute paths for the input genome files and the location of the R script have to be manually inserted in the following variables:
+If the user wants to run the flask app, the file [flask_interface/app/routes.py](flask_interface/app/routes.py) file has to be opened in a text editor, and the user has to add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH'], both as *absolute paths*. 
 
-
-If the user wants to run the flask app, the file [flask_interface/app/routes.py](flask_interface/app/routes.py) file has to be opened in a text editor, and the user has to add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH']. 
 For security reasons, this has to be done manually by the user according to their own local directory structure. If this step is omitted, and the flask app is run, the app will raise an error and exit. 
 
 ```shell
@@ -98,14 +98,14 @@ app.config['UPLOAD_PATH']= ''
 app.config['SCRIPT_PATH'] = ''
 ```
 
-## Required files
+## Required input files
 
-1. Input genome or gene files, in FASTA format - they can be in one-line or multi-line, as long as one file is given for each genome/gene, since the program will not distinguish them within the file. 
+Input genome or gene files, in FASTA format - they can be in one-line or multi-line, as long as one file is given for each genome/gene, since the program will not distinguish them within the file. 
 
 
 ## Command line - Usage (v1.0.0)
 
-Below there is a description of the command, possible to be visualized in the command line with:
+Below there is a description of the python software, possible to be visualized in the command line with:
 
 ```shell
 $ python plotZcurve.py -h
@@ -117,16 +117,16 @@ This script reads an input genome file in a FASTA format and returns the coordin
 optional arguments:
   -h, --help            show this help message and exit
   -i INPUT_GENOME [INPUT_GENOME ...]
-                        input genome(s) to calculate the Z-curve, can be more than one
+                        input genome(s) to calculate the Z-curve, can be more than one - example: -i zika_genome.fna ecoli_genome.fna
   -f OUTPUT_FORMAT [OUTPUT_FORMAT ...]
-                        optional: list of formats (separated by space): example png pdf jpeg
-  -o OUTPUT_PATH        optional: path to output directory
-  -s SCRIPT_PATH        path to Zcurve_func.R, needed if the R script is not in the current working directory
+                        optional: list of formats (separated by space) - example: -f png pdf jpeg
+  -o OUTPUT_PATH        optional: path to output directory - example: -o results
+  -s SCRIPT_PATH        path to Zcurve_func.R, needed if the R script is not in the current working directory - example: -s scripts
   -gc                   optional: in case -gc is used, the script will save the GC content calculations to a file instead of printing to the console
-  -out_gc OUTPUT_GC     optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory)
+  -out_gc OUTPUT_GC     optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory) - example: -out_gc gc_results.txt
 ```
 
-There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. Also, in MacOS there seems to be an extra error with one of the R files for the library, but again this does not constitute a rpoblem and the software runs smoothly. 
+There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. Also, in MacOS there seems to be an extra error with one of the R files for the library, but again this does not constitute a problem and the software runs smoothly. 
 
 ### Examples of usage
 
@@ -140,14 +140,14 @@ The sample data can be found in the corresponding folder in this repo. The genom
 The most basic command is:
 
 ```shell
-$ python plotZcurve.py -i samples_data/ecoli_genome.fna -Rfunc Zcurve_func.R
+$ python plotZcurve.py -i samples_data/ecoli_genome.fna
 ````
 
 This will output the plot with the default name and extension (output.png) in the working directory. 
 If we want to specify an input file in another folder and save it with a specific name, we can run the following command:
 
 ```shell
-$ python plotZcurve.py -i samples_data/ecoli_genome.fna -Rfunc Zcurve_func.R -o samples_output/ecoli
+$ python plotZcurve.py -i samples_data/ecoli_genome.fna -o samples_output/ecoli
 ````
 
 The script retrieves the input file in the subfolder, and saves the new plot in the samples_output subfolder as ecoli.png. 
@@ -155,10 +155,10 @@ The script retrieves the input file in the subfolder, and saves the new plot in 
 Lastly, if we want to have multiple formats of the same graph, we can run:
 
 ```shell
-$ python plotZcurve.py -i samples_data/zika_genome.fna -Rfunc Zcurve_func.R -o samples_output/zika_mult -f png pdf jpeg tiff  
+$ python scripts/plotZcurve.py -i samples_data/zika_genome.fna -o samples_output/zika_mult -f png pdf jpeg tiff  -s scripts/
 ```
 
-This will create 3 versions of the same plot, in the different formats. 
+This will create 3 versions of the same plot, in the different formats. Also it retrieves the R functions from another folder. 
 
 Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo samples_output/folder.
 
@@ -169,7 +169,8 @@ The first image is the result of the second example command.
 ![zika_mult.png](samples_output/zika_mult.png)
 
 This instead is the result of the last example command. 
-The Z-curve is colored by where we are in the genome sequence (sequence index); therefore, we can follow the sequence from start to end, and if we are interested in a particular region, we know already circa in which position we should be looking into. 
+
+The Z-curve is colored by where we are in the genome sequence (sequence length); therefore, we can follow the sequence from start to end, and if we are interested in a particular region, we know already circa in which position we should be looking into. 
 
 The axes are the following:
 - x: R/Y disparity
@@ -191,10 +192,11 @@ The web interface was built using flask, in a development environment; therefore
 To run the flask interface, the necessary files are needed, starting from the parent directory flask_interface:
 1. webZcurve.py
 2. .flaskenv
-3. app (directory): containing routes.py, __init__.py
-4. app/templates(directory): containing main_input.html, print_results.html
+3. app (directory): containing subdirectories and the two main .py scripts
+4. app/templates (directory): containing main_input.html, print_results.html
+5. app/static (directory): where the images will first be generated. 
 
-It is recommended to use the same conda or python virtual environment created before, and just install flask as well (if not installed already). 
+It is recommended to use the same conda or python virtual environment created before, and just install flask(if not installed already). 
 
 ```shell
 $ conda activate Zcurve
@@ -206,6 +208,9 @@ $ pip -m install flask==2.0.3
 
 **Remember** to add the paths as indicated in the installation section, otherwise the flask app will not work. 
 
+GitHub does not allow for empty directories to be pushed: therefore, in the flask_interface directory the static subfolder is missing. However, the flask app should create the static/images subfolders the first time is run; if not, then just create a directory called static in flask_env/app/, and then the app should run without problems. 
+
+
 ### Running the web interface
 
 After the necessary installations and modifications aforementioned, the app is ready to run, if all modules are installed and the necessary files are present. 
@@ -213,13 +218,13 @@ After the necessary installations and modifications aforementioned, the app is r
 $ flask run
 ```
 
-In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed. An exmaple of output is shown below. 
+In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed. An example of output is shown below. 
 
 ![web1](examples_web_interface/image1.png)
 
 ![web2](examples_web_interface/image2.png)
 
-For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot; the user has also the possibility to download the plot as PNG. 
+For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot; the user has also the possibility to download the plot as PNG (while the flask app is still running). 
 
 ## Limitations of the software
 
