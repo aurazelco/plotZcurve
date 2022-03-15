@@ -357,8 +357,8 @@ bases = set(['a', 'c', 'g', 't'])
 # if only the out_gc command is given bu not the save_gc
 if args.out_gc and not args.save_gc:
     print('The GC content will be printed to the terminal. If you want to save the GC content in an output file, please add the -gc flag to the command')
-# if instead both are given, the output file is open
-elif args.out_gc and args.save_gc:
+# if instead the -gc flag is used, we open the file
+elif args.save_gc:
     fileOut=open(args.out_gc, 'w')
 
 # for each genome in the list provided after the -i flag
