@@ -35,7 +35,7 @@ if not os.path.exists(download_folder):
 
 # accepts only .fna files for upload
 app.config['UPLOAD_EXTENSIONS'] = ['.fna']
-# sets the upload path, sp the files can be checked - please insert your own path
+# sets the upload path, so the files can be checked - please insert your own path
 app.config['UPLOAD_PATH']= ''
 # sets where the images will be downloaded and later retrieved from to be displayed
 app.config['DOWNLOAD_PATH'] = download_folder
