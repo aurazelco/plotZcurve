@@ -105,7 +105,7 @@ Input genome or gene files, in FASTA format - they can be in one-line or multi-l
 
 ## Command line - Usage (v1.0.0)
 
-Below there is a description of the python software, possible to be visualized in the command line with:
+Below there is a description of the python software [plotZcurve.py](plotZcurve.py), possible to be visualized in the command line with:
 
 ```shell
 $ python plotZcurve.py -h
@@ -127,6 +127,8 @@ optional arguments:
 ```
 
 There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. Also, in MacOS there seems to be an extra error with one of the R files for the library, but again this does not constitute a problem and the software runs smoothly. 
+
+The R function Zcurve_func.R is documented [here](Zcurve_func.R). 
 
 ### Examples of usage
 
@@ -160,7 +162,7 @@ $ python scripts/plotZcurve.py -i samples_data/zika_genome.fna -o samples_output
 
 This will create 3 versions of the same plot, in the different formats. Also it retrieves the R functions from another folder. 
 
-Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo samples_output/folder.
+Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo [samples_output/folder](samples_output/folder).
 
 ![ecoli.png](samples_output/ecoli.png)
 
@@ -185,18 +187,17 @@ The Zika genome (bottom plot) instead seems to vary throughout the sequence espe
 
 ## Web interface - Usage (v1.0.0)
 
-The web interface was built using flask, in a development environment; therefore, some features are not optmized. In this repo, the main directory tree structure is found in flask_interface. 
+The web interface was built using flask, in a development environment; therefore, some features are not optmized. In this repo, the main directory tree structure is found in [flask_interface](flask_interface). 
 
 ### Necessary files and tree structure
 
 To run the flask interface, the necessary files are needed, starting from the parent directory flask_interface:
-1. webZcurve.py
-2. .flaskenv
-3. app (directory): containing subdirectories and the two main .py scripts
-4. app/templates (directory): containing main_input.html, print_results.html
-5. app/static (directory): where the images will first be generated. 
+1. [webZcurve.py](flask_interface/webZcurve.py)
+2. [.flaskenv](flask_interface/.flaskenv)
+3. [flask_interface/app](flask_interface/app) (directory): containing subdirectories and the two main .py scripts
+4. [flask_interface/app/templates](flask_interface/app/templates) (directory): containing main_input.html, print_results.html
 
-It is recommended to use the same conda or python virtual environment created before, and just install flask(if not installed already). 
+It is recommended to use the same conda or python virtual environment created before, and just install flask (if not installed already). 
 
 ```shell
 $ conda activate Zcurve
