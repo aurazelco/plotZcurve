@@ -3,8 +3,6 @@
 plotZcurve = function(coord_input, outputname, format_list, plot_title) {
   # creates a vector with an integer step-count of the genome sequence -> used for plot legend
   step=seq(1,nrow(coord_input))
-  # message for the user
-  print('Plotting the Z-curve...\n')
   # creates a 3D plot, with the points represented as a line, from the 3 columns of the dataframe
   lines3D(coord_input[,'X'], coord_input[,'Y'], coord_input[,'Z'], 
           # colors the line: here I chose to color it according to the step, so we can know the direction

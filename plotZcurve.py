@@ -383,6 +383,7 @@ for genome_input in args.genome:
     # creates the matrix needed to run the plotting function
     plot_matrix=creates_matrix(seq, tr_matrix)
     # executes the R function and generates the plot
+    print('Plotting the Z-curve for {}...' .format(file_name))
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
 
 
