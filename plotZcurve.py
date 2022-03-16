@@ -20,14 +20,15 @@ and Z in the coordinates dictionary
 9. trasforms the dictionary into a pandas dataframe, which is then rendered into an R dataframe
 10. plotZcurve function is used on the dataframe, and the plots are saved, either in the working 
 directory or a user-defined filename, as PNG (default) or other formats. 
+11. if the -ws flag is used, the script will generate additional plot(s) only for sequence length vs Z-axis (W/S) which
+can give an indication of the GC content throughout the sequence; the plots will be saved in the same formats as the main plot
 
 - Usage:
-This script reads an input genome file in a FASTA format and returns a Z-curve plot. 
+This script reads an input genome file in a FASTA format and returns a Z-curve plot, the GC content in the sequence and optionally a W/S disparity plot. 
 
 It is run in the command line as:
-    plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]]
-                     [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC]
 
+plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC] [-ws]
 
 - List of user-defined functions:
 1. dir_path: checkes if the directory exists
@@ -36,7 +37,7 @@ It is run in the command line as:
 4. GC_cont: calculates the GC content in the sequence
 5. creates_matrix: from the genome sequence string, creates the matrix with coordinates to be plotted 
 
-Zcurve: a custom R function is imported; a brief description is given here, but please refer to the R script for more details. 
+plotZcurve and plotWS: custom R functions are imported; a brief description is given further down, but please refer to the R scripts for more details. 
 
 
 - List of imported modules:
@@ -95,7 +96,7 @@ from rpy2.robjects.conversion import localconverter
 #%% ARGPARSE
 
 # description of program, printed when -h is called in the command line
-usage = 'This script reads an input genome file in a FASTA format and returns the coordinates matrix to plot a Z-curve. '
+usage = 'This script reads an input genome file in a FASTA format and returns a Z-curve plot, the GC content in the sequence and optionally a W/S disparity plot.'
 
 # creates an ArgumentParser object which has assigned name 'parser'
 parser = argparse.ArgumentParser(description=usage)
@@ -132,14 +133,14 @@ parser.add_argument(
     help="optional: path to output directory - example: -o results" 
     )
 
-# R script path - in case R script is not in current working directory - optional
+# R scripts path - in case R scripts are not in current working directory - optional
 parser.add_argument(
     '-s', 
     metavar = 'SCRIPT_PATH',
     dest = 'script_path',
     type=os.path.abspath, # extracts the absolute path, easier to navigate through the tree
     default = os.path.curdir, # the default is the present working directory
-    help="path to Zcurve_func.R, needed if the R script is not in the current working directory - example: -s scripts" 
+    help="path to R scripts, needed if the R scripts are not in the current working directory - example: -s scripts/" 
     )
 
 # GC content - if the user wants the GC content saved in a file instead of printed on the screen - optional
@@ -157,6 +158,14 @@ parser.add_argument(
     dest = 'out_gc',
     default='GC_content_output.txt',
     help= "optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory) - example: -out_gc gc_results.txt" 
+    )
+
+# W/S plot - if the user wants also to save a W/S plot, which is an indication of GC content through the sequence
+parser.add_argument(
+    '-ws', 
+    dest = 'plot_ws',
+    action="store_true",
+    help="optional: in case -ws is used, the script will also generate a W/S plot only, corresponding to GC content; the plot(s) will be saved in the same format as the main Z-curve plot" 
     )
 
 # returns result of parsing 'parser' to the class args
@@ -178,11 +187,11 @@ class InvalidNucleotide(CustomError):
     pass
 
 
-#%% IMPORTING R USER-DEFINED FUNCTION
+#%% IMPORTING USER-DEFINED R FUNCTION
 
-# defines a list of packages needed for the R function to run
-packageNames = ['plot3D']
-# imports a R package which is used ot check if the package in packageNames is installed
+# defines a list of packages needed for the R functions to run
+packageNames = ['plot3D', 'ggplot2']
+# imports a R package which is used to check if the packages in packageNames are installed
 utils = rpackages.importr('utils')
 # defines which CRAN mirror to check, commonly is 1
 utils.chooseCRANmirror(ind=1)
@@ -195,18 +204,22 @@ if len(packnames_to_install) > 0:
     # it installs them
     utils.install_packages(StrVector(packnames_to_install))
 
-# imports the library plot3D
+# imports the libraries from R
 plot3D=rpackages.importr('plot3D')
+plot3D=rpackages.importr('ggplot2')
 
-R_func_path = args.script_path + '/Zcurve_func.R'
 
-with open(R_func_path, 'r') as R_func:
+# Z-curve custom R script
+Zplot_func_path = args.script_path + '/Zcurve_func.R'
+
+# opens the file
+with open(Zplot_func_path, 'r') as R_func:
     # reads the file containing R function given in the command line, and saves it in string
-    string = R_func.read()
+    string1 = R_func.read()
 
 # creates a custom module, Zcurve, which contains the R function -> now this can be used as a 
-# regular python module
-Zcurve = STAP(string, 'Zcurve')
+# regular python module -> will be called as Zcurve.plotZcurve
+Zcurve = STAP(string1, 'Zcurve')
 
 # description of parameters for Zcurve R function
 '''plotZcurve function
@@ -215,24 +228,59 @@ Zcurve = STAP(string, 'Zcurve')
     r_coord: R dataframe
         dataframe containing the values for X, Y and Z to be plotted
 
-    args.outfile: string
-        filename to be used when saving the output files
+    outname: string
+        full path to generate the output plot
 
     args.out_format: list
         list of all formats in which to save the plots
+
+    file_name: string
+        used for main title of the plot
 
     Returns:
         Zcurve plots
 
 '''
 
-#%% USER-DEFINED FUNCTIONS - CHECKS IF OPTIONAL OUTPUT DIRECTORY EXISTS
+# WS custom R script
+WSplot_func_path = args.script_path + '/WS_func.R'
+
+# opens the file
+with open(WSplot_func_path, 'r') as WS_func:
+    # reads the file containing R function given in the command line, and saves it in string
+    string2 = WS_func.read()
+
+# saves the R function in a custom python module -> will be called as WSplot.plotWS
+WSplot = STAP(string2, 'WSplot')
+
+# description of parameters for WS R function
+'''plotWS function
+
+    Parameters:
+    r_coord: R dataframe
+        dataframe containing the values for X, Y and Z to be plotted
+
+    outname: string
+        full path to generate the output plot
+
+    args.out_format: list
+        list of all formats in which to save the plots
+
+    file_name: string
+        used for main title of the plot
+
+    Returns:
+        W/S plots
+
+'''
+
+#%% USER-DEFINED PYTHON FUNCTIONS
 
 '''DIR_PATH
 
     Parameters
     ----------
-    seq : string
+    seq: string
         folder path as string
 
     Returns
@@ -250,7 +298,14 @@ def dir_path(string):
     else:
         raise argparse.ArgumentTypeError("{path_dir} is not a valid path")
 
-#%% USER-DEFINED FUNCTIONS - READ GENOME
+'''CHECKS_INPUT
+
+    Parameters
+    ----------
+    genome : file
+        input genome file
+
+'''
 
 def checks_input(genome):
     # assign the first line of the file to a variable
@@ -258,6 +313,27 @@ def checks_input(genome):
     # checks if file is valid FASTA file or not
     if not first_line.startswith('>'):
         raise InvalidInput('Your input file {} is not valid. Please insert a fasta file' .format(genome))
+
+
+'''READS_GENOME
+
+    Parameters
+    ----------
+    genome: file
+        input genome file
+
+    bases: set
+        set containing allowed nucleotides
+
+    Returns
+    -------
+    seq: string
+        genome sequence in one string
+
+    plot_main: string
+        filename without extensions, to be used as title of the plot(s)
+
+'''
 
 def reads_genome(genome, bases):
     # initializes an empty string
@@ -308,7 +384,23 @@ def GC_cont(seq):
     # returns the percentage
     return(perc_gc)
 
-#%% USER-DEFINED FUNCTIONS - CALCULATE COORDINATES MATRIX
+
+''' CREATES_MATRIX
+
+    Parameters
+    ----------
+    seq : string
+        nucleotide sequence
+
+    tr_matrix: numpy.array
+        transformation matrix to calculate the coordinates
+
+    Returns
+    -------
+    r_coord: R object
+        R-compatible dataframe to be used in the R functions
+
+'''
 
 def creates_matrix(seq, tr_matrix):
     # initializes a dictionary where the frequencies are stored
@@ -328,7 +420,6 @@ def creates_matrix(seq, tr_matrix):
         for index,coord in enumerate(coordinates.keys()):
             # adds to each axis' list the sum of the transformed values using the corresponding row in the tr_matrix
             coordinates[coord].append(np.sum(freq_values*tr_matrix[index]))
-
     # creates a pandas dataframe out of the vertically stackes lists from the coordinates dictionary, and
     # labels the 3 columns as the correspondent axes
     py_df = pd.DataFrame(data=np.column_stack(list(coordinates.values())), columns=['X', 'Y', 'Z'])
@@ -337,8 +428,7 @@ def creates_matrix(seq, tr_matrix):
       r_coord = robjects.conversion.py2rpy(py_df)
     # assigns a name to the R object
     robjects.r.assign("r_coord", r_coord)
-    
-    # returns the coordinates dictionary
+    # returns the R objects to be plotted
     return(r_coord)
 
 
@@ -377,20 +467,28 @@ for genome_input in args.genome:
     # if the -gc flag is used
     if args.save_gc:
         # prints the filename and the GC content to the out_gc file
-        fileOut.write('{}: {:.2f}%' .format(file_name, gc_file))
+        fileOut.write('{}: {:.2f}%\n' .format(file_name, gc_file))
     # if not, prints to the terminal
     else:
         # prints the filename and the GC content to the console
         print('{}: {:.2f}%' .format(file_name, gc_file))
-    # combines the output plot name 
+    # combines the output plot name for the Z-curve plot
     out_name=f'{out_path}/{file_name}'
     # creates the matrix needed to run the plotting function
     plot_matrix=creates_matrix(seq, tr_matrix)
     # message for the user
     print('Plotting the Z-curve for {}...' .format(file_name))
-    # executes the R function and generates the plot
+    # executes the R function and generates the plot(s)
     Zcurve.plotZcurve(plot_matrix, out_name, args.out_format, file_name)
+    # if the -ws flag is used
+    if args.plot_ws:
+        # combines the output plot name for the WS plot
+        ws_out_name = f'{out_path}/{file_name}_WS'
+        # message for the user
+        print('Plotting the W/S plot for {}...' .format(file_name))
+        # executes the plotWS R function and generates the W/S plot(s)
+        WSplot.plotWS(plot_matrix, ws_out_name, args.out_format, file_name)
 
-# we have to close the output file, but only if the gc flag was used
+# we have to close the output file, but only if the -gc flag was used
 if args.save_gc:
     fileOut.close()

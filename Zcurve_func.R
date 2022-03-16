@@ -19,12 +19,12 @@ plotZcurve = function(coord_input, outputname, format_list, plot_title) {
   for (file_format in format_list) {
     # because of the different formats, we have to adjusts the size, since using units or res raises an error
     if (file_format == 'pdf') {
-        # pdf needs a smaller scale to be visible, otherwise the plot created is too big
-        param_plot = c(20,10)
+      # pdf needs a smaller scale to be visible, otherwise the plot created is too big
+      param_plot = c(20,10)
       # if not a pdf, all other vectorial image should be fine
-      } else {
-        param_plot = c(700,350)
-      }
+    } else {
+      param_plot = c(700,350)
+    }
     # copies the plot without having to re-enter the commands
     dev.copy(
       width = param_plot[1],
