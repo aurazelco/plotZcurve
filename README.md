@@ -1,5 +1,28 @@
 # Plotting a Z-curve
 
+## Table of contents
+* [Background](#background)
+* [Installation](#installation)
+  * [Main files](#main-files)
+  * [Versions of languages and packages](#versions-of-languages-and-packages)
+  * [Before running](#before-running)
+  * [Additional steps for flask](#additional-steps-for-flask)
+* [Required input files](#required-input-files)
+* [Command line - Usage (v1.0.0)](#command-line---usage-v100)
+  * [Examples of usage](#examples-of-usage)
+    * [Example 1 - plot Z-curve](#example-1---plot-z-curve)
+    * [Example 2 - specify output directory](#example-2---specify-output-directory)
+    * [Example 3 - save GC content to output](#example-3---saves-GC-content-to-output)
+    * [Example 4 - generate Z-curve plot in multiple formats](#example-4---generate-z-curve-plot-in-multiple-formats)
+    * [Example 5 - generate Z-curve and W/S plots](#example-5---generate-z-curve-and-w/s-plots)
+* [Web interface - Usage (v1.0.0)](#web-interface---usage-v100)
+  * [Necessary files and tree structure](#necessary-files-and-tree-structure)
+  * [Running the web interface](#running-the-web-interface)
+* [Limitations of the software](#limitations-of-the-software)
+* [Version log](#version-log)
+
+
+
 ## Background
 
 In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other details about the software can be found [here](Zcurve_MS.pdf). 
@@ -29,7 +52,7 @@ Therefore, the cumulative quantity of each nucleotide in a specific point of the
 
 ## Installation
 
-### Main files:
+### Main files
 
 The repo can be cloned in a directory of choice as:
 
@@ -70,7 +93,7 @@ Otherwise, the environments can be created from scratch following the usual comm
 
 **Important**: it is recommended to create either a conda or a python virtual environment, not both. Using both could cause conflicts which in turn will raise errors, and the software/flask app will not run.
 
-### Before running:
+### Before running
 
 As aforementioned, it is recommended to work in a conda or python virtual environment with the specific version of rpy2 installed. 
 
@@ -86,7 +109,7 @@ The python script can be run in the command line as:
 If not present, the script will raise a ModuleNotFoundError, followed by the names of modules to be installed. Please do so before running again. 
 The libraries for R are installed the first time the software is run, if not already present. 
 
-#### Additional steps for flask
+### Additional steps for flask
 
 If the user wants to run the flask app, the file [flask_interface/app/routes.py](flask_interface/app/routes.py) file has to be opened in a text editor, and the user has to add where the files are stored in app.config['UPLOAD_PATH'], and where the script with the R function is located in app.config['SCRIPT_PATH'], both as *absolute paths*. 
 
@@ -141,7 +164,7 @@ The sample data can be found in the corresponding folder in this repo. The genom
 | *E. coli* | ecoli_genome.fna | [https://www.ncbi.nlm.nih.gov/assembly/GCF_000005845.2] |
 | Zika virus | zika_genome.fna | [https://www.ncbi.nlm.nih.gov/nuccore/NC_012532.1]|
 
-The examples below respect the directory organization found in this repo, and they are run from the parent directory, where the README.md file is. Please modify the commands accordingly if the structure is changed. 
+The examples below respect the directory organization found in this repo, and they are run from the parent directory, where the README.md file is. Please modify the commands accordingly if the structure is changed. Because of the structure of the repo, the -s flag is necessary. If the working directory is where the scripts are (e.g. scripts/) then -s is not needed. 
 
 #### Example 1 - plot Z-curve
 
@@ -173,7 +196,7 @@ $ python scripts/plotZcurve.py -i examples/samples_data/ecoli_genome.fna -o exam
 ````
 The script retrieves the input file in the subfolder, and saves the new plot in the samples_output subfolder as ecoli.png. 
 
-#### Example 3 - saves GC content to output
+#### Example 3 - save GC content to output
 
 If we want to save the gc content in a file, instead of having it printed to the screen, we can use the -gc flag. In the example below, the -out_gc flag is also present, so we can save the output where we want; if only -gc is used, the file will be saved in the working directory under 'GC_content_output.txt'. 
 
@@ -197,7 +220,7 @@ $ python scripts/plotZcurve.py -i examples/samples_data/zika_genome.fna -o examp
 ```
 This will create 3 versions of the same plot, in the different formats. Also it retrieves the R functions from another folder. 
 
-Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo [samples_output/folder](samples_output/folder).
+Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo [samples_output/folder](examples/samples_output/folder).
 
 ![ecoli.png](examples/samples_output/ecoli.png)
 
@@ -238,6 +261,8 @@ To run the flask interface, the necessary files are needed, starting from the pa
 2. [.flaskenv](flask_interface/.flaskenv)
 3. [flask_interface/app](flask_interface/app) (directory): containing subdirectories and the two main .py scripts
 4. [flask_interface/app/templates](flask_interface/app/templates) (directory): containing main_input.html, print_results.html
+
+Please note that this order is followed in this repo. There is no need for modifying the tree structure. 
 
 It is recommended to use the same conda or python virtual environment created before, and just install flask (if not installed already). 
 
