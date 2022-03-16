@@ -35,11 +35,11 @@ if not os.path.exists(download_folder):
 
 # accepts only .fna files for upload
 app.config['UPLOAD_EXTENSIONS'] = ['.fna']
-# sets the upload path, so the files can be checked - please insert your own path
+# sets the upload path, sp the files can be checked - please insert your own path
 app.config['UPLOAD_PATH']= ''
 # sets where the images will be downloaded and later retrieved from to be displayed
 app.config['DOWNLOAD_PATH'] = download_folder
-# sets the path where the R script is - please insert your own path
+# sets the path where the R scripts are - please insert your own path
 app.config['SCRIPT_PATH'] = ''
 
 # loads the main page, where the files are uploaded
@@ -59,7 +59,8 @@ def plot_all():
   # multiplies the matrix for the square root of 3 divided by 4
   tr_matrix = tr_matrix*math.sqrt(3)/4
   # retrieves the R function
-  Zcurve=get_Rfunc()
+  Zcurve=get_Rfunc('Zcurve_func.R', 'Zcurve', 'plot3D')
+  WSplot=get_Rfunc('WS_func.R', 'WSplot', 'ggplot2')
   # for each file uploaded:
   for uploaded_file in request.files.getlist('file'):
     # checks if the file exists; if so, returns the filename name and its path as a list
@@ -78,14 +79,23 @@ def plot_all():
     file_dict[filename] = [gc]
     # creates the matrix for plotting
     plot_matrix=creates_matrix(seq, tr_matrix)
-    # puts together the full path to the plot directory where it will be saved
+    # puts together the full path to the plot directory where it will be saved - Zcurve plot
     out_name=os.path.join(app.config['DOWNLOAD_PATH'], filename)
-    # executes the R function -> in this case, it saves the plot only as png
+    # puts together the full path to the plot directory where it will be saved - WS plot
+    ws_out_name=os.path.join(app.config['DOWNLOAD_PATH'], filename + '_WS')
+    # executes the R plotZcurve function -> in this case, it saves the plot only as png
     Zcurve.plotZcurve(plot_matrix, out_name, 'png', filename)
     # retrieves the plot filename
     plot_name = 'images/' +  filename + '.png'
     # adds the plot filename to the dictionary under the same key as the gc content
     file_dict[filename].append([plot_name])
+    # executes the R plotWS function -> in this case, it saves the plot only as png
+    WSplot.plotWS(plot_matrix, ws_out_name, 'png', filename)
+    # retrieves the plot filename
+    ws_plot_name = 'images/' +  filename + '_WS.png'
+    # adds the plot filename to the dictionary under the same key as the gc content
+    file_dict[filename].append([ws_plot_name])
+    print(file_dict)
   # returns the html template, which will print the GC content and display the plot in the server, with an option to download the plot as png
   return render_template('print_results.html', file_dict=file_dict)
 
@@ -183,9 +193,9 @@ def creates_matrix(seq, tr_matrix):
     return(r_coord)
 
 # imports the R function
-def get_Rfunc():
+def get_Rfunc(script_name, module_name, library_name):
   # defines a list of packages needed for the R function to run
-  packageNames = ['plot3D']
+  packageNames = [library_name]
   # imports a R package which is used ot check if the package in packageNames is installed
   utils = rpackages.importr('utils')
   # defines which CRAN mirror to check, commonly is 1
@@ -197,14 +207,14 @@ def get_Rfunc():
     # it installs them
     utils.install_packages(StrVector(packnames_to_install))
   # imports the library plot3D
-  plot3D=rpackages.importr('plot3D')
-  R_func_path =os.path.join(app.config['SCRIPT_PATH'], 'Zcurve_func.R')
+  plot3D=rpackages.importr(library_name)
+  R_func_path =os.path.join(app.config['SCRIPT_PATH'], script_name)
   with open(R_func_path, 'r') as R_func:
     # reads the file containing R function given in the command line, and saves it in string
     string = R_func.read()
   # creates a custom module, Zcurve, which contains the R function -> now this can be used as a 
   # regular python module
-  Zcurve = STAP(string, 'Zcurve')
+  Rmodule = STAP(string, module_name)
   # returns the function as a python module now
-  return Zcurve
+  return Rmodule
   

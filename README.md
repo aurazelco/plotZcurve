@@ -52,6 +52,7 @@ In the table below you can find the versions used to build this script and the w
 | pandas | 1.4.1 |
 | rpy2 | 3.1.0 | 
 | plot3D | 1.4 | 
+| ggplot2 | 3.3.5 |
 | Flask | 2.0.3 |
 | Werkzeug | 2.0.3 |
 
@@ -110,9 +111,9 @@ Below there is a description of the python software [plotZcurve.py](plotZcurve.p
 ```shell
 $ python plotZcurve.py -h
 
-usage: plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC]
+usage: plotZcurve.py [-h] -i INPUT_GENOME [INPUT_GENOME ...] [-f OUTPUT_FORMAT [OUTPUT_FORMAT ...]] [-o OUTPUT_PATH] [-s SCRIPT_PATH] [-gc] [-out_gc OUTPUT_GC] [-ws]
 
-This script reads an input genome file in a FASTA format and returns the coordinates matrix to plot a Z-curve.
+This script reads an input genome file in a FASTA format and returns a Z-curve plot, the GC content in the sequence and optionally a W/S disparity plot.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -121,14 +122,15 @@ optional arguments:
   -f OUTPUT_FORMAT [OUTPUT_FORMAT ...]
                         optional: list of formats (separated by space) - example: -f png pdf jpeg
   -o OUTPUT_PATH        optional: path to output directory - example: -o results
-  -s SCRIPT_PATH        path to Zcurve_func.R, needed if the R script is not in the current working directory - example: -s scripts
+  -s SCRIPT_PATH        path to R scripts, needed if the R scripts are not in the current working directory - example: -s scripts/
   -gc                   optional: in case -gc is used, the script will save the GC content calculations to a file instead of printing to the console
   -out_gc OUTPUT_GC     optional: output file where the GC content will be written in the -gc flag is used (default 'GC_content_output.txt' in the working directory) - example: -out_gc gc_results.txt
+  -ws                   optional: in case -ws is used, the script will also generate a W/S plot only, corresponding to GC content; the plot(s) will be saved in the same format as the main Z-curve plot
 ```
 
 There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. Also, in MacOS there seems to be an extra error with one of the R files for the library, but again this does not constitute a problem and the software runs smoothly. 
 
-The R function Zcurve_func.R is documented [here](Zcurve_func.R). 
+The R functions [Zcurve_func.R](Zcurve_func.R) and [WS_func.R](WS_func.R) are present in this repo and can be read for more documentation. Please **store the R scripts in the same folder**, so that the -s flag can be valid for both. 
 
 ### Examples of usage
 
@@ -139,38 +141,17 @@ The sample data can be found in the corresponding folder in this repo. The genom
 | *E. coli* | ecoli_genome.fna | [https://www.ncbi.nlm.nih.gov/assembly/GCF_000005845.2] |
 | Zika virus | zika_genome.fna | [https://www.ncbi.nlm.nih.gov/nuccore/NC_012532.1]|
 
+#### Example 1 - plot Z-curve
+
 The most basic command is:
 
 ```shell
 $ python plotZcurve.py -i samples_data/ecoli_genome.fna
 ````
 
-This will output the plot with the default name and extension (output.png) in the working directory. 
-If we want to specify an input file in another folder and save it with a specific name, we can run the following command:
+This will output the plot with the default name and extension (output.png) in the working directory. Below the generated graph is diplayed:
 
-```shell
-$ python plotZcurve.py -i samples_data/ecoli_genome.fna -o samples_output/ecoli
-````
-
-The script retrieves the input file in the subfolder, and saves the new plot in the samples_output subfolder as ecoli.png. 
-
-Lastly, if we want to have multiple formats of the same graph, we can run:
-
-```shell
-$ python scripts/plotZcurve.py -i samples_data/zika_genome.fna -o samples_output/zika_mult -f png pdf jpeg tiff  -s scripts/
-```
-
-This will create 3 versions of the same plot, in the different formats. Also it retrieves the R functions from another folder. 
-
-Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo [samples_output/folder](samples_output/folder).
-
-![ecoli.png](samples_output/ecoli.png)
-
-The first image is the result of the second example command. 
-
-![zika_mult.png](samples_output/zika_mult.png)
-
-This instead is the result of the last example command. 
+![ecoli.png](samples_output/output.png)
 
 The Z-curve is colored by where we are in the genome sequence (sequence length); therefore, we can follow the sequence from start to end, and if we are interested in a particular region, we know already circa in which position we should be looking into. 
 
@@ -179,11 +160,70 @@ The axes are the following:
 - y: M/K disparity
 - z: W/S disparity
 
-Depending on how the line fits in the tridimensional space, we can infer something on the genome plotted. 
+Depending on how the line fits in the tridimensional space, we can infer something on the genome plotted. Most often, the users will be interested in the W/S disparity, representing AT vs GC content: if z is positive, we have more AT, and if negative, more GC. 
+
+#### Example 2 - specify output directory
+
+If we want to specify an input file in another folder, we can run the following command:
+
+```shell
+$ python plotZcurve.py -i samples_data/ecoli_genome.fna -o samples_output/ecoli
+````
+The script retrieves the input file in the subfolder, and saves the new plot in the samples_output subfolder as ecoli.png. 
+
+#### Example 3 - saves GC content to output
+
+If we want to save the gc content in a file, instead of having it printed to the screen, we can use the -gc flag. In the example below, the -out_gc flag is also present, so we can save the output where we want; if only -gc is used, the file will be saved in the working directory under 'GC_content_output.txt'. 
+
+```shell
+ python plotZcurve.py -i samples_data/zika_genome.fna -gc -out_gc samples_output/GC_cont_zika.txt
+```
+
+The [samples_output/GC_cont_zika.txt](samples_output/GC_cont_zika.txt) file contains:
+```shell
+zika_genome: 50.77%
+```
+
+If multiple files are used as input, the output file will contain the GC content of each input in separate lines. 
+
+#### Example 4 - generate Z-curve plot in multiple formats
+
+If we want to have multiple formats of the same graph, we can run:
+
+```shell
+$ python scripts/plotZcurve.py -i samples_data/zika_genome.fna -o samples_output/zika_mult -f png pdf jpeg tiff  -s scripts/
+```
+This will create 3 versions of the same plot, in the different formats. Also it retrieves the R functions from another folder. 
+
+Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo [samples_output/folder](samples_output/folder).
+
+![ecoli.png](samples_output/ecoli.png)
+
+The first image is the result of the second example command, and as we can see it is the same as the one generated in the first example. 
+
+![zika_mult.png](samples_output/zika_mult.png)
+
+This instead is the result of the last example command. 
+
 For example, if we look at the *E. coli* Z-curve (top plot), we see that the genome overall forms an open circle in the 3D space, indicating that start and end of the genome are quite similar to each other, while the mid section (1.5e+6 - 3.5e+6 circa) is quite different, especially along the y and z axes. 
 
 The Zika genome (bottom plot) instead seems to vary throughout the sequence especially in W/S disparity (z), while the other two parameters are rather constant, and in fact align quite well with the diagonal in the xy space. 
 
+#### Example 5 - generate Z-curve and W/S plots
+
+Lastly, the script can also provide W/S plots. The reason behind this additional feature is that GC content is ultimately the most widely used parameter of the three chemical properties displayed in the Z-curve plot; thus, the script gives the user the possibility to extract the coordinates for the Z-axis only. The user has to consider that W/S plot(s) generated are going to be in the same format as the one for the Z-curve; thefore if more formats are specified for the Z-curve, the same formats will be used to generate the W/S plots. 
+
+For example:
+
+```shell
+$ python plotZcurve.py -i samples_data/ecoli_genome.fna -o samples_output -ws
+```
+
+In addition to the Z-curve plot, with the command above we also generated the following plot:
+
+![ecoli_genome_WS.png](samples_output/ecoli_genome_WS.png)
+
+On the x-axis we have the sequence length, and on the y-axis the W/S disparity, corresponding to the z-axis in the Z-curve plots for *E. coli*. The legend indicates the values of the coordinates for the W/S disparity: if values equal or greater to 0, we have more AT than GC; below 0, we have more GC. Thus, in this plot, it seems that the Zika genome is progressively enriched in GC from start to end of the genome. 
 
 ## Web interface - Usage (v1.0.0)
 
@@ -214,24 +254,31 @@ GitHub does not allow for empty directories to be pushed: therefore, in the flas
 
 ### Running the web interface
 
-After the necessary installations and modifications aforementioned, the app is ready to run, if all modules are installed and the necessary files are present. 
+After the necessary installations and modifications aforementioned, the app is ready to run, if all modules are installed and the necessary files are present. After activating the conda or python virtual environment, use the following command when in the flask_interface directory: 
+
 ```shell
 $ flask run
 ```
 
+The flask app will print to the console a line similar to:
+
+```shell
+* Running on http:... (Press CTRL+C to quit) # ... will be an actual URL
+```
+
+To go to the webpage, open a web browser and copy-paste the URL, or right-click from the terminal (some operative systems allow that). 
+
 In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed. An example of output is shown below. 
 
-![web1](examples_web_interface/image1.png)
+![flask_example](examples_web_interface/flask_example.png)
 
-![web2](examples_web_interface/image2.png)
-
-For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot; the user has also the possibility to download the plot as PNG (while the flask app is still running). 
+For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot and W/S plot; the user has also the possibility to download the plots as PNG (while the flask app is still running). If multiple files are chosen, the results for each input file will appear one below the other. 
 
 ## Limitations of the software
 
 1. The versions of the modules is extremely important, especially for rpy2 module to run. 
 2. The software slows down when the genome files get bigger
-3. Because the web interface was created in the flask developer environment, there are some limitations of the app when compared to the command line version. In the web interface, the user can download the plots only as png, because they are first created as png, since multiple file extensions was not possible at the moment (but it is in the command line). lso, the fact that this is in the developer environment leads to the fact that the paths have to hard-coded in the script, since it would be a possible security issue. Therefore, the web interface is limited in functionality compared to the command line version. 
+3. Because the web interface was created in the flask developer environment, there are some limitations of the app when compared to the command line version. In the web interface, the user can download the plots only as png, because they are first created as png, since multiple file extensions was not possible at the moment (but it is in the command line). Also, since flask is in the developer environment, the paths have to hard-coded in the script to access the files, since it would be a possible security issue. Therefore, the web interface is limited in functionality compared to the command line version, and can be run only locally. 
 
 
 ## Version log

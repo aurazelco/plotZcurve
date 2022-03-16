@@ -8,11 +8,22 @@
     {% for input_file in file_dict.keys() %}
       <!-- Prints the GC content -->
       <div><p> The GC content for {{ input_file }} is {{ file_dict[input_file][0] }}%. </p></div>
-      <!-- Displays the corresponding plot, retrieved from the local subdirectory static/images -->
-      <p><img src="{{url_for('static', filename=file_dict[input_file][1])}}"></p>
-      <!-- Displayes 'Save as PNG' so that the user can download the plot as png in their Downloads directory -->
-      <br />
-      <p><a href="{{url_for('static', filename=file_dict[input_file][1])}}" download={{input_file}} >Save as PNG </a></p>
+      <div class='clearfix'>
+        <div class='img-container'>
+          <!-- Displays the corresponding Z-curve plot, retrieved from the local subdirectory static/images -->
+          <img src="{{url_for('static', filename=file_dict[input_file][1])}}" >
+          <br />
+          <!-- Displayes 'Save Z-curve plot as PNG' so that the user can download the plot as png in their Downloads directory -->
+          <a href="{{url_for('static', filename=file_dict[input_file][1])}}" download={{input_file}} >Save Z-curve plot as PNG </a>
+        </div>
+        <div class='img-container'>   
+          <!-- Displays the corresponding W/S plot, retrieved from the local subdirectory static/images -->   
+          <img src="{{url_for('static', filename=file_dict[input_file][2])}}" width='auto' height='350'>
+          <br /> 
+          <!-- Displayes 'Save W/S plot as PNG' so that the user can download the plot as png in their Downloads directory -->
+          <a href="{{url_for('static', filename=file_dict[input_file][2])}}" download={{input_file}} >Save W/S plot as PNG </a>
+        </div>
+    </div>
     <!-- End of loop -->
     {% endfor %}
 <!-- End of block -->
