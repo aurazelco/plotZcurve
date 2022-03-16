@@ -313,5 +313,5 @@ For each file submitted, the GC content will be reported as well as the correspo
 Selected updates:
 
 ```
-v1.0.0		First official release Zcurve - th March 2022
+v1.0.0		First official release Zcurve - 16th March 2022
 ```
