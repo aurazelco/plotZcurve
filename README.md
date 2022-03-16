@@ -56,9 +56,9 @@ In the table below you can find the versions used to build this script and the w
 | Flask | 2.0.3 |
 | Werkzeug | 2.0.3 |
 
-The versions of the python modules can be checks using [check_versions.py](check_versions.py). While pandas and numpy older versions work too, it is necessary to install the rpy2 specific version, since updating it to later versions leads to an error in loading th R library. 
+The versions of the python modules can be checks using [check_versions.py](scripts/check_versions.py). While pandas and numpy older versions work too, it is necessary to install the rpy2 specific version, since updating it to later versions leads to an error in loading th R library. 
 
-The requirements can be found in [environment.yml](environment.yml) for conda or [requirements.txt](requirements.txt) for python virtual environments, and it can be installed as:
+The requirements can be found in [environment.yml](config_files/environment.yml) for conda or [requirements.txt](config_files/requirements.txt) for python virtual environments, and it can be installed as:
 
 ```shell
 $ conda env create -n your_name -f environment.yml # but requirements.txt can be used too
@@ -106,7 +106,7 @@ Input genome or gene files, in FASTA format - they can be in one-line or multi-l
 
 ## Command line - Usage (v1.0.0)
 
-Below there is a description of the python software [plotZcurve.py](plotZcurve.py), possible to be visualized in the command line with:
+Below there is a description of the python software [plotZcurve.py](scripts/plotZcurve.py), possible to be visualized in the command line with:
 
 ```shell
 $ python plotZcurve.py -h
@@ -130,7 +130,7 @@ optional arguments:
 
 There may be a FutureWarning appearing for a pandas function, depending on the operating system. At time of release and with the version specified, this does not constitute a problem. Also, in MacOS there seems to be an extra error with one of the R files for the library, but again this does not constitute a problem and the software runs smoothly. 
 
-The R functions [Zcurve_func.R](Zcurve_func.R) and [WS_func.R](WS_func.R) are present in this repo and can be read for more documentation. Please **store the R scripts in the same folder**, so that the -s flag can be valid for both. 
+The R functions [Zcurve_func.R](scripts/Zcurve_func.R) and [WS_func.R](scripts/WS_func.R) are present in this repo and can be read for more documentation. Please **store the R scripts together in the same folder**, so that the -s flag can be valid for both. If not, the script will not find one of the two functions and will exit after raising an error. 
 
 ### Examples of usage
 
@@ -141,17 +141,19 @@ The sample data can be found in the corresponding folder in this repo. The genom
 | *E. coli* | ecoli_genome.fna | [https://www.ncbi.nlm.nih.gov/assembly/GCF_000005845.2] |
 | Zika virus | zika_genome.fna | [https://www.ncbi.nlm.nih.gov/nuccore/NC_012532.1]|
 
+The examples below respect the directory organization found in this repo, and they are run from the parent directory, where the README.md file is. Please modify the commands accordingly if the structure is changed. 
+
 #### Example 1 - plot Z-curve
 
 The most basic command is:
 
 ```shell
-$ python plotZcurve.py -i samples_data/ecoli_genome.fna
+$ python scripts/plotZcurve.py -i examples/samples_data/ecoli_genome.fna -s scripts/
 ````
 
 This will output the plot with the default name and extension (output.png) in the working directory. Below the generated graph is diplayed:
 
-![ecoli.png](samples_output/output.png)
+![ecoli.png](examples/samples_output/output.png)
 
 The Z-curve is colored by where we are in the genome sequence (sequence length); therefore, we can follow the sequence from start to end, and if we are interested in a particular region, we know already circa in which position we should be looking into. 
 
@@ -167,7 +169,7 @@ Depending on how the line fits in the tridimensional space, we can infer somethi
 If we want to specify an input file in another folder, we can run the following command:
 
 ```shell
-$ python plotZcurve.py -i samples_data/ecoli_genome.fna -o samples_output/ecoli
+$ python scripts/plotZcurve.py -i examples/samples_data/ecoli_genome.fna -o examples/samples_output/ecoli -s scripts/
 ````
 The script retrieves the input file in the subfolder, and saves the new plot in the samples_output subfolder as ecoli.png. 
 
@@ -176,10 +178,10 @@ The script retrieves the input file in the subfolder, and saves the new plot in 
 If we want to save the gc content in a file, instead of having it printed to the screen, we can use the -gc flag. In the example below, the -out_gc flag is also present, so we can save the output where we want; if only -gc is used, the file will be saved in the working directory under 'GC_content_output.txt'. 
 
 ```shell
- python plotZcurve.py -i samples_data/zika_genome.fna -gc -out_gc samples_output/GC_cont_zika.txt
+ python scripts/plotZcurve.py -i examples/samples_data/zika_genome.fna -gc -out_gc examples/samples_output/GC_cont_zika.txt -s scripts/
 ```
 
-The [samples_output/GC_cont_zika.txt](samples_output/GC_cont_zika.txt) file contains:
+The [samples_output/GC_cont_zika.txt](examples/samples_output/GC_cont_zika.txt) file contains:
 ```shell
 zika_genome: 50.77%
 ```
@@ -191,17 +193,17 @@ If multiple files are used as input, the output file will contain the GC content
 If we want to have multiple formats of the same graph, we can run:
 
 ```shell
-$ python scripts/plotZcurve.py -i samples_data/zika_genome.fna -o samples_output/zika_mult -f png pdf jpeg tiff  -s scripts/
+$ python scripts/plotZcurve.py -i examples/samples_data/zika_genome.fna -o examples/samples_output/zika_mult -f png pdf jpeg tiff  -s scripts/
 ```
 This will create 3 versions of the same plot, in the different formats. Also it retrieves the R functions from another folder. 
 
 Below, a representative output of the commands above, ecoli.png and zika_mult.png, which can also be found in the repo [samples_output/folder](samples_output/folder).
 
-![ecoli.png](samples_output/ecoli.png)
+![ecoli.png](examples/samples_output/ecoli.png)
 
 The first image is the result of the second example command, and as we can see it is the same as the one generated in the first example. 
 
-![zika_mult.png](samples_output/zika_mult.png)
+![zika_mult.png](examples/samples_output/zika_mult.png)
 
 This instead is the result of the last example command. 
 
@@ -216,12 +218,12 @@ Lastly, the script can also provide W/S plots. The reason behind this additional
 For example:
 
 ```shell
-$ python plotZcurve.py -i samples_data/ecoli_genome.fna -o samples_output -ws
+$ python scripts/plotZcurve.py -i examples/samples_data/ecoli_genome.fna -o examples/samples_output -ws -s scripts/
 ```
 
 In addition to the Z-curve plot, with the command above we also generated the following plot:
 
-![ecoli_genome_WS.png](samples_output/ecoli_genome_WS.png)
+![ecoli_genome_WS.png](examples/samples_output/ecoli_genome_WS.png)
 
 On the x-axis we have the sequence length, and on the y-axis the W/S disparity, corresponding to the z-axis in the Z-curve plots for *E. coli*. The legend indicates the values of the coordinates for the W/S disparity: if values equal or greater to 0, we have more AT than GC; below 0, we have more GC. Thus, in this plot, it seems that the Zika genome is progressively enriched in GC from start to end of the genome. 
 
@@ -270,7 +272,7 @@ To go to the webpage, open a web browser and copy-paste the URL, or right-click 
 
 In the webpage, the user can navigate to the folder where the genomes are stored. Multiple files can be selected, as long as they have a .fna extension. Once the files are chosen, the user can click on 'Submit' to start the calculations. If the genomes are quite large, it may take some time for the results to be displayed. An example of output is shown below. 
 
-![flask_example](examples_web_interface/flask_example.png)
+![flask_example](examples/examples_web_interface/flask_example.png)
 
 For each file submitted, the GC content will be reported as well as the corresponding Z-curve plot and W/S plot; the user has also the possibility to download the plots as PNG (while the flask app is still running). If multiple files are chosen, the results for each input file will appear one below the other. 
 
