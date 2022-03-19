@@ -1,4 +1,4 @@
-ma# Plotting a Z-curve
+# Plotting a Z-curve
 
 ## Table of contents
 * [Background](#background)
