@@ -1,4 +1,4 @@
-# Plotting a Z-curve
+ma# Plotting a Z-curve
 
 ## Table of contents
 * [Background](#background)
@@ -25,7 +25,7 @@
 
 ## Background
 
-In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other details about the software can be found [here](Zcurve_MS.pdf). 
+In this section, a summarized introduction of the Z-curve is given; more information about the Z-curve calculations and other details about the software can be found [here](manuscript/Aura_Zelco.docx). 
 
 The Z-curve is used in bioinformatics analysis to infer chemical properties of the genome (or gene) sequence in exam; since the curve tends to zig-zag, the 3D line is called Z-curve.
 
@@ -34,18 +34,18 @@ The Z-curve is as long as the target sequence, and each point on the Z-curve, *P
 As aforementioned, the coordinates for each *P* are calculated based on the chemical properties sequence (more details in [this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC4009844/)). 
 
 More specifically, the nucleotides are divided in according to three properties:
-1. aMino/Keto (M/K) bases - will become the x-axis
-2. puRine/pYrimide (R/Y) bases - will become the y-axis
+1. puRine/pYrimide (R/Y) bases - will become the x-axis
+2. aMino/Keto (M/K) bases - will become the y-axis
 3. Weak/Strong H-bonds (W/S) - will become the z-axis
 
 Therefore, each nucleotide is classified as:
 
-| Nucleotide | M/K | R/Y | W/S |
+| Nucleotide | R/Y | M/K | W/S |
 |:---:|:---:|:---:|:---:|
-|Adenine (A) | M | R | W |
-| Cytosine (C) | M | Y | S | 
-| Guanine (G) | K | R | S |
-| Thymine (T) | K | Y | W |
+|Adenine (A) | R | M | W |
+| Cytosine (C) | Y | M | S | 
+| Guanine (G) | R | K | S |
+| Thymine (T) | Y | K | W |
 
 Therefore, the cumulative quantity of each nucleotide in a specific point of the sequence can indicate if there is a disparity or not in the composition of the sequence. One of the advantages of the Z-curve compared to other methods is that it is highly informative, unique to each genome and can reveal interesting sections of the genome, e.g. horizontal gene transfer, protein-coding genes, higher GC content, comparison of genomes, etc.
 
