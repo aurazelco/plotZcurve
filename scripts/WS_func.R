@@ -1,3 +1,12 @@
+# Author: Aura Zelco
+# Title: Plot the W/S disparity along the sequence
+
+# Procedure:
+# 1. stores the sequence length in the step variable
+# 2. plots the W/S disparity
+# 3. saves the plot with the different extensions specified in the command line
+
+
 # defines the function, which takes as inputs a dataframe containing the coordinates for the 3 axes,
 # the output filename and a list containing the formats of the output plots
 plotWS = function(coord_input, ws_outputname, format_list, plot_title) {
